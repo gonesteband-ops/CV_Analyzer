@@ -125,7 +125,7 @@ async def root(request: Request, db: Session = Depends(get_db)):
 
 @app.get("/login")
 async def login_page(request: Request):
-    return templates.TemplateResponse("pages/login.html", {"request": request}, status_code=200)
+    return templates.TemplateResponse("pages/login.html", {"request": request})
 
 @app.get("/logout")
 async def logout(request: Request):
