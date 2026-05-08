@@ -86,14 +86,7 @@ async def log_requests(request: Request, call_next):
     return response
 
 # 5. ESTATICOS Y TEMPLATES
-# Deshabilitar cache de templates para evitar problema con tuplas no hasheables
-templates = Jinja2Templates(
-    directory=BASE_DIR / "templates",
-    options={
-        "auto_reload": True,
-        "cache_size": 0,  # Deshabilitar cache
-    }
-)
+templates = Jinja2Templates(directory=BASE_DIR / "templates")
 app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
 
 # Filtros personalizados
@@ -163,8 +156,8 @@ async def historico_page(request: Request, db: Session = Depends(get_db)):
     return templates.TemplateResponse("pages/historico.html", {"request": request, "usuario": usuario, "show_sidebar": True})
 
 
-@app.get("/acerca-de")
-async def acerca_de_page(request: Request, db: Session = Depends(get_db)):
+@app.get("/acerca")
+async def acerca_page(request: Request, db: Session = Depends(get_db)):
     """Página de acerca de."""
     usuario = getattr(request.state, "usuario", None)
     if not usuario:
@@ -207,3 +200,16 @@ app.include_router(history_router, tags=["Histórico"])
 @app.get("/health", tags=["Health"])
 async def health():
     return {"status": "healthy", "version": settings.version}
+
+
+# 9. BLOQUE DE INICIO DIRECTO (python main.py)
+if __name__ == "__main__":
+    import uvicorn
+    print("=" * 60)
+    print(" AI-Recruiter Pro - Servidor de Desarrollo")
+    print("=" * 60)
+    print(" URL: http://localhost:8000")
+    print(" Login: http://localhost:8000/login")
+    print(" Admin: gonzalo@iarecruiter.cl / Admin.123")
+    print("=" * 60)
+    uvicorn.run(app, host="0.0.0.0", port=8000)
