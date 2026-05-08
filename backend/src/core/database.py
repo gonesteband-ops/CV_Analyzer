@@ -9,8 +9,9 @@ from sqlalchemy.pool import StaticPool
 
 from core.config import settings
 
-# Obtener ruta absoluta del proyecto (analizer_beta_2)
-PROJECT_ROOT = Path(__file__).parent.parent.parent.parent
+# Ruta absoluta para la base de datos SQLite (funciona en local y Render)
+# backend/src/analizer.db
+DB_PATH = Path(__file__).parent.parent / "analizer.db"
 
 
 def create_database_engine() -> create_engine:
@@ -20,10 +21,14 @@ def create_database_engine() -> create_engine:
     Returns:
         Engine: Engine de SQLAlchemy configurado.
     """
-    # Usar ruta absoluta hardcodeada para evitar problemas con variables de entorno
-    db_url = "sqlite:///C:/Users/hp/Desktop/PROYECTOS/analizer_beta_2/analizer.db"
+    # Construir URL con ruta absoluta para SQLite
+    db_url = settings.database_url
     
     if db_url.startswith("sqlite"):
+        # Usar ruta absoluta para evitar problemas de directorio de trabajo
+        db_path = DB_PATH.as_posix()
+        db_url = f"sqlite:///{db_path}"
+        
         # SQLite requiere argumentos especiales para async
         return create_engine(
             db_url,
