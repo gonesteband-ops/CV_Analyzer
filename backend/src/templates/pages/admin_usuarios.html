@@ -1,0 +1,237 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Administración de Usuarios - AI-Recruiter Pro{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+  <!-- Contenido principal -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <!-- Encabezado -->
+    <div class="mb-8">
+      <h2 class="text-3xl font-bold text-gray-900 mb-2">Administración de Usuarios</h2>
+      <p class="text-gray-600">Gestiona usuarios, roles y estados del sistema</p>
+    </div>
+
+    <!-- Mensajes de formulario -->
+    <div id="form-messages" class="max-w-6xl mx-auto mb-6"></div>
+
+    <!-- Formulario de creación -->
+    <div class="max-w-6xl mx-auto mb-8 bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <h3 class="text-xl font-semibold text-[#2F4DAA] mb-4 flex items-center gap-3">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+        </svg>
+        Nuevo Usuario
+      </h3>
+
+      <form id="create-user-form" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
+            hx-post="/api/users"
+            hx-target="#form-messages"
+            hx-swap="innerHTML">
+        <!-- Nombre -->
+        <div>
+          <label for="nombre" class="block text-sm font-medium text-gray-700 mb-1">Nombre Completo</label>
+          <input type="text" id="nombre" name="nombre" required placeholder="Ej: Juan Pérez"
+                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#2F4DAA] focus:border-[#2F4DAA]">
+        </div>
+
+        <!-- Email -->
+        <div>
+          <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+          <input type="email" id="email" name="email" required autocomplete="off" placeholder="Ej: admin@test.com"
+                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#2F4DAA] focus:border-[#2F4DAA]">
+        </div>
+
+        <!-- Password -->
+        <div>
+          <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
+          <input type="password" id="password" name="password" minlength="8" placeholder="Mínimo 8 caracteres (vacío para mantener al editar)"
+                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#2F4DAA] focus:border-[#2F4DAA]">
+          <div class="mt-1 flex items-center justify-between">
+            <label class="inline-flex items-center text-sm text-gray-600">
+              <input type="checkbox" id="show-password" onchange="document.getElementById('password').type = this.checked ? 'text' : 'password'" class="mr-1">
+              Mostrar contraseña
+            </label>
+            <span id="password-hint" class="text-xs text-gray-500 italic">Déjalo vacío para mantener la contraseña actual</span>
+          </div>
+        </div>
+
+        <!-- Rol -->
+        <div>
+          <label for="rol" class="block text-sm font-medium text-gray-700 mb-1">Rol</label>
+          <select id="rol" name="rol" required
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#2F4DAA] focus:border-[#2F4DAA]">
+            <option value="reclutador">Reclutador</option>
+            <option value="admin">Administrador</option>
+          </select>
+        </div>
+
+        <!-- Botón -->
+        <div class="md:col-span-2 lg:col-span-4">
+          <button type="submit" id="btn-submit" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400">
+            Crear Usuario
+          </button>
+          <button type="button" id="btn-cancelar" onclick="cancelarEdicion()" class="ml-2 px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400" style="display: none;">
+            Cancelar
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Filtros -->
+    <div class="max-w-6xl mx-auto mb-6 bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+      <div class="flex gap-4 items-end">
+        <!-- Filtro por rol -->
+        <div class="flex-1">
+          <label for="filter-rol" class="block text-sm font-medium text-gray-700 mb-1">Rol</label>
+          <select id="filter-rol"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#2F4DAA] focus:border-[#2F4DAA]"
+                  onchange="filtrarUsuarios()">
+            <option value="">Todos los roles</option>
+            <option value="admin">Administrador</option>
+            <option value="reclutador">Reclutador</option>
+          </select>
+        </div>
+
+        <!-- Filtro por estado -->
+        <div class="flex-1">
+          <label for="filter-activo" class="block text-sm font-medium text-gray-700 mb-1">Estado</label>
+          <select id="filter-activo"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#2F4DAA] focus:border-[#2F4DAA]"
+                  onchange="filtrarUsuarios()">
+            <option value="">Todos los estados</option>
+            <option value="true">Activos</option>
+            <option value="false">Inactivos</option>
+          </select>
+        </div>
+
+        <!-- Botón limpiar -->
+        <div>
+          <button type="button" onclick="limpiarFiltros()" 
+                  class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400">
+            Limpiar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabla de usuarios -->
+    <div id="lista-usuarios-container" class="max-w-6xl mx-auto bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+      <!-- Cargado dinámicamente vía HTMX -->
+      <div class="text-center py-12 text-gray-500">
+        <p>Cargando usuarios...</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Cargar usuarios al iniciar
+  document.addEventListener('DOMContentLoaded', function() {
+    cargarUsuarios();
+  });
+
+  // Función para cargar usuarios con filtros
+  function cargarUsuarios() {
+    const rol = document.getElementById('filter-rol').value;
+    const activo = document.getElementById('filter-activo').value;
+    
+    let url = '/api/users/table-html';
+    const params = new URLSearchParams();
+    
+    if (rol) params.append('rol', rol);
+    if (activo) params.append('activo', activo);
+    
+    if (params.toString()) {
+      url += '?' + params.toString();
+    }
+    
+    htmx.ajax('GET', url, {
+      target: '#lista-usuarios-container',
+      swap: 'innerHTML'
+    });
+  }
+
+  // Función para filtrar usuarios
+  function filtrarUsuarios() {
+    cargarUsuarios();
+  }
+
+  // Función para limpiar filtros
+  function limpiarFiltros() {
+    document.getElementById('filter-rol').value = '';
+    document.getElementById('filter-activo').value = '';
+    cargarUsuarios();
+  }
+
+  // Función para editar usuario - carga datos y prepara formulario
+  function editarUsuario(id) {
+    // Obtener datos del usuario
+    fetch(`/api/users/${id}`)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Usuario no encontrado');
+        }
+        return response.json();
+      })
+      .then(usuario => {
+        // Llenar campos del formulario
+        document.getElementById('nombre').value = usuario.nombre;
+        document.getElementById('email').value = usuario.email;
+        document.getElementById('rol').value = usuario.rol;
+        document.getElementById('password').value = '';
+        document.getElementById('password').removeAttribute('required');
+
+        // Cambiar formulario a modo edición
+        const form = document.getElementById('create-user-form');
+        form.setAttribute('hx-put', `/api/users/${id}`);
+        form.removeAttribute('hx-post');
+
+        // Cambiar texto del botón
+        document.getElementById('btn-submit').textContent = 'Guardar Cambios';
+        document.getElementById('btn-cancelar').style.display = 'inline-block';
+
+        // Scroll al formulario
+        form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      })
+      .catch(error => {
+        console.error('Error al cargar usuario:', error);
+        alert('Error al cargar los datos del usuario');
+      });
+  }
+
+  // Función para cancelar edición y resetear formulario
+  function cancelarEdicion() {
+    // Resetear formulario
+    document.getElementById('create-user-form').reset();
+
+    // Restaurar formulario a modo creación
+    const form = document.getElementById('create-user-form');
+    form.setAttribute('hx-post', '/api/users');
+    form.removeAttribute('hx-put');
+
+    // Password requerido solo en creación
+    document.getElementById('password').setAttribute('required', 'required');
+
+    // Cambiar texto del botón
+    document.getElementById('btn-submit').textContent = 'Crear Usuario';
+    document.getElementById('btn-cancelar').style.display = 'none';
+
+    // Limpiar mensajes
+    document.getElementById('form-messages').innerHTML = '';
+  }
+
+  // Función para toggle activo
+  function toggleActivoUsuario(id, esActivo) {
+    const accion = esActivo ? 'desactivar' : 'activar';
+    if (esActivo && !confirm('¿Está seguro que quiere desactivar este usuario?')) {
+      return;
+    }
+
+    htmx.ajax('PATCH', `/api/users/${id}/toggle-activo`, {
+      target: '#form-messages',
+      swap: 'innerHTML'
+    });
+  }
+</script>
+{% endblock %}

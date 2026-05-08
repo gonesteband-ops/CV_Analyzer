@@ -1,0 +1,9 @@
+{
+  "ai": "qwen",
+  "branch_numbering": "sequential",
+  "context_file": "QWEN.md",
+  "here": true,
+  "integration": "qwen",
+  "script": "ps",
+  "speckit_version": "0.8.1.dev0"
+}

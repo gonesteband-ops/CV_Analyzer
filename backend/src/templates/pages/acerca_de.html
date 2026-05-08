@@ -1,0 +1,385 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Acerca de - Sistema de Evaluación{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-background">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    
+    <!-- Encabezado -->
+    <div class="text-center mb-12">
+      <h1 class="text-3xl font-bold text-[#2F4DAA] mb-4">
+        ¿Cómo funciona la evaluación de candidatos?
+      </h1>
+      <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+        Nuestro sistema no solo busca palabras clave en el CV. 
+        Evalúa en capas usando inteligencia artificial, pesos personalizables 
+        y penalizaciones inteligentes.
+      </p>
+    </div>
+
+    <!-- Sección 1: Los 3 puntajes dimensionales -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-8 mb-8">
+      <h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+        <span class="w-10 h-10 bg-[#2F4DAA] text-white rounded-full flex items-center justify-center text-lg font-bold">1</span>
+        Análisis en 3 dimensiones
+      </h2>
+      
+      <p class="text-gray-600 mb-6">
+        Cuando un CV se analiza, nuestra IA (GROQ) no se limita a buscar palabras literales. 
+        <strong>Infiera habilidades implícitas</strong>. Por ejemplo, si un CV menciona "Power BI", 
+        el sistema asume automáticamente que el candidato sabe DAX y modelamiento de datos, 
+        aunque no lo haya escrito explícitamente.
+      </p>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Técnico -->
+        <div class="bg-blue-50 rounded-lg p-6 border border-blue-100">
+          <div class="flex items-center gap-2 mb-3">
+            <span class="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold">T</span>
+            <h3 class="font-semibold text-gray-900">Puntaje Técnico</h3>
+          </div>
+          <p class="text-sm text-gray-600 mb-3">
+            Mide las habilidades técnicas: lenguajes de programación, herramientas, 
+            frameworks y conocimientos específicos del cargo.
+          </p>
+          <div class="bg-white rounded p-3 text-xs text-gray-500 border border-blue-100">
+            <strong class="text-blue-700">Ejemplo:</strong> Un postulante que maneja Python, SQL y Power BI 
+            obtendrá un alto puntaje técnico para un perfil de Data Analyst.
+          </div>
+        </div>
+
+        <!-- Experiencia -->
+        <div class="bg-green-50 rounded-lg p-6 border border-green-100">
+          <div class="flex items-center gap-2 mb-3">
+            <span class="w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center text-sm font-bold">E</span>
+            <h3 class="font-semibold text-gray-900">Puntaje de Experiencia</h3>
+          </div>
+          <p class="text-sm text-gray-600 mb-3">
+            Evalúa los años de experiencia, el nivel de seniority y la 
+            coherencia de la trayectoria con el cargo solicitado.
+          </p>
+          <div class="bg-white rounded p-3 text-xs text-gray-500 border border-green-100">
+            <strong class="text-green-700">Ejemplo:</strong> Un postulante con 5 años en análisis de datos 
+            obtendrá un alto puntaje de experiencia para un cargo Semi Senior.
+          </div>
+        </div>
+
+        <!-- Soft Skills -->
+        <div class="bg-purple-50 rounded-lg p-6 border border-purple-100">
+          <div class="flex items-center gap-2 mb-3">
+            <span class="w-8 h-8 bg-purple-500 text-white rounded-full flex items-center justify-center text-sm font-bold">S</span>
+            <h3 class="font-semibold text-gray-900">Puntaje Soft Skills</h3>
+          </div>
+          <p class="text-sm text-gray-600 mb-3">
+            Mide habilidades blandas: liderazgo, comunicación, trabajo en equipo, 
+            resolución de conflictos y proactividad.
+          </p>
+          <div class="bg-white rounded p-3 text-xs text-gray-500 border border-purple-100">
+            <strong class="text-purple-700">Ejemplo:</strong> Un postulante que ha liderado equipos 
+            y presentado reportes a la dirección tendrá alto puntaje en soft skills.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sección 2: Pesos configurables -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-8 mb-8">
+      <h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+        <span class="w-10 h-10 bg-[#2F4DAA] text-white rounded-full flex items-center justify-center text-lg font-bold">2</span>
+        Pesos personalizables por perfil
+      </h2>
+      
+      <p class="text-gray-600 mb-6">
+        No todos los cargos requieren las mismas habilidades. Un programador necesita 
+        alto peso técnico, mientras que un vendedor necesita más experiencia y soft skills. 
+        Por eso, <strong>cada perfil define sus propios pesos</strong>.
+      </p>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-gray-50 rounded-lg p-6">
+          <h3 class="font-semibold text-gray-900 mb-3">Peso Técnico</h3>
+          <p class="text-sm text-gray-600 mb-3">Qué tanto importan las herramientas y conocimientos técnicos.</p>
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-gray-500">Cargo técnico (Programador):</span>
+            <span class="text-sm font-bold text-blue-600">70%</span>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
+            <div class="bg-blue-500 h-2 rounded-full" style="width: 70%"></div>
+          </div>
+          <div class="flex items-center gap-2 mt-2">
+            <span class="text-xs text-gray-500">Cargo comercial (Vendedor):</span>
+            <span class="text-sm font-bold text-green-600">30%</span>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
+            <div class="bg-green-500 h-2 rounded-full" style="width: 30%"></div>
+          </div>
+        </div>
+
+        <div class="bg-gray-50 rounded-lg p-6">
+          <h3 class="font-semibold text-gray-900 mb-3">Peso Experiencia</h3>
+          <p class="text-sm text-gray-600 mb-3">Qué tanto importan los años y el rubro del postulante.</p>
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-gray-500">Cargo Senior:</span>
+            <span class="text-sm font-bold text-blue-600">40%</span>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
+            <div class="bg-blue-500 h-2 rounded-full" style="width: 40%"></div>
+          </div>
+          <div class="flex items-center gap-2 mt-2">
+            <span class="text-xs text-gray-500">Cargo Trainee:</span>
+            <span class="text-sm font-bold text-green-600">10%</span>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
+            <div class="bg-green-500 h-2 rounded-full" style="width: 10%"></div>
+          </div>
+        </div>
+
+        <div class="bg-gray-50 rounded-lg p-6 md:col-span-2">
+          <h3 class="font-semibold text-gray-900 mb-3">Peso Soft Skills</h3>
+          <p class="text-sm text-gray-600 mb-3">Qué tanto importan las habilidades blandas y de liderazgo.</p>
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-gray-500">Cargo de liderazgo (Jefe de equipo):</span>
+            <span class="text-sm font-bold text-purple-600">30%</span>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
+            <div class="bg-purple-500 h-2 rounded-full" style="width: 30%"></div>
+          </div>
+          <div class="flex items-center gap-2 mt-2">
+            <span class="text-xs text-gray-500">Cargo operativo (Analista):</span>
+            <span class="text-sm font-bold text-gray-600">10%</span>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
+            <div class="bg-gray-500 h-2 rounded-full" style="width: 10%"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+        <p class="text-sm text-yellow-800">
+          <strong>Importante:</strong> Los 3 pesos deben sumar 100%. 
+          El sistema usa valores por defecto (50% técnico, 30% experiencia, 20% soft) 
+          si no se configuran.
+        </p>
+      </div>
+    </div>
+
+    <!-- Sección 3: Penalizaciones -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-8 mb-8">
+      <h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+        <span class="w-10 h-10 bg-[#F95E50] text-white rounded-full flex items-center justify-center text-lg font-bold">3</span>
+        Penalizaciones inteligentes
+      </h2>
+      
+      <p class="text-gray-600 mb-6">
+        No todo lo que brilla es oro. Un candidato puede tener excelente currículum 
+        pero no ser adecuado para el cargo. Las penalizaciones evitan falsos positivos.
+      </p>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Sobrecalificado -->
+        <div class="bg-red-50 rounded-lg p-6 border border-red-100">
+          <div class="flex items-center gap-2 mb-3">
+            <span class="text-2xl">📈</span>
+            <h3 class="font-semibold text-gray-900">Penalización por Sobrecalificación</h3>
+          </div>
+          <p class="text-sm text-gray-600 mb-4">
+            Si un postulante tiene <strong>muchos más años de experiencia</strong> de los que el cargo requiere, 
+            el sistema le resta puntos. Esto evita contratar a alguien que probablemente 
+            se aburra y renuncie en poco tiempo.
+          </p>
+          <div class="bg-white rounded p-4 text-sm border border-red-100">
+            <p class="text-gray-700 mb-2"><strong>Ejemplo:</strong></p>
+            <p class="text-gray-600">Un postulante con <strong>10 años de experiencia</strong> aplica a un cargo <strong>Junior</strong> que pide máximo 2 años.</p>
+            <div class="mt-3 flex items-center gap-2">
+              <span class="text-sm text-gray-500">Penalización aplicada:</span>
+              <span class="text-sm font-bold text-red-600">-40 puntos</span>
+            </div>
+            <p class="text-xs text-gray-400 mt-2">El cargo tendría que pagar un sueldo muy alto para retenerlo. Mejor buscar alguien que calce.</p>
+          </div>
+        </div>
+
+        <!-- Cambio Rubro -->
+        <div class="bg-orange-50 rounded-lg p-6 border border-orange-100">
+          <div class="flex items-center gap-2 mb-3">
+            <span class="text-2xl">🔄</span>
+            <h3 class="font-semibold text-gray-900">Penalización por Cambio de Rubro</h3>
+          </div>
+          <p class="text-sm text-gray-600 mb-4">
+            Si un postulante viene de una <strong>industria completamente diferente</strong> 
+            a la del cargo, el sistema le resta puntos. Esto filtra postulantes que 
+            no tienen experiencia en el rubro específico.
+          </p>
+          <div class="bg-white rounded p-4 text-sm border border-orange-100">
+            <p class="text-gray-700 mb-2"><strong>Ejemplo:</strong></p>
+            <p class="text-gray-600">Un postulante que trabajó toda su vida en <strong>analytics</strong> aplica a un cargo de <strong>Atención al Cliente</strong>.</p>
+            <div class="mt-3 flex items-center gap-2">
+              <span class="text-sm text-gray-500">Penalización aplicada:</span>
+              <span class="text-sm font-bold text-orange-600">-30 puntos</span>
+            </div>
+            <p class="text-xs text-gray-400 mt-2">No tiene experiencia directa en atención al cliente. Su perfil no calza con el rubro.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sección 4: Fórmula del puntaje final -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-8 mb-8">
+      <h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+        <span class="w-10 h-10 bg-green-500 text-white rounded-full flex items-center justify-center text-lg font-bold">4</span>
+        ¿Cómo se calcula el puntaje final?
+      </h2>
+
+      <div class="bg-gray-50 rounded-lg p-6 mb-6">
+        <p class="text-center text-lg font-mono text-gray-800">
+          Puntaje Final = (Técnico × Peso Técnico) + (Experiencia × Peso Experiencia) + (Soft Skills × Peso Soft Skills) — Penalizaciones
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-blue-50 rounded-lg p-6">
+          <h3 class="font-semibold text-gray-900 mb-3">Ejemplo: Cargo de Data Analyst</h3>
+          <p class="text-sm text-gray-600 mb-3">Pesos: Técnico 70% | Experiencia 20% | Soft 10%</p>
+          <div class="space-y-2 text-sm">
+            <div class="flex justify-between">
+              <span>Técnico: 80 × 0.70</span>
+              <span class="font-semibold">= 56 pts</span>
+            </div>
+            <div class="flex justify-between">
+              <span>Experiencia: 85 × 0.20</span>
+              <span class="font-semibold">= 17 pts</span>
+            </div>
+            <div class="flex justify-between">
+              <span>Soft Skills: 75 × 0.10</span>
+              <span class="font-semibold">= 7.5 pts</span>
+            </div>
+            <div class="border-t border-blue-200 pt-2 flex justify-between font-bold">
+              <span>Puntaje Final</span>
+              <span class="text-blue-700">81/100</span>
+            </div>
+          </div>
+          <p class="text-xs text-gray-500 mt-3">Sin penalizaciones. Postulante recomendado.</p>
+        </div>
+
+        <div class="bg-orange-50 rounded-lg p-6">
+          <h3 class="font-semibold text-gray-900 mb-3">Ejemplo: Cargo de Atención al Cliente</h3>
+          <p class="text-sm text-gray-600 mb-3">Pesos: Técnico 30% | Experiencia 50% | Soft 20% — Penalización cambio rubro: -30</p>
+          <div class="space-y-2 text-sm">
+            <div class="flex justify-between">
+              <span>Técnico: 40 × 0.30</span>
+              <span class="font-semibold">= 12 pts</span>
+            </div>
+            <div class="flex justify-between">
+              <span>Experiencia: 20 × 0.50</span>
+              <span class="font-semibold">= 10 pts</span>
+            </div>
+            <div class="flex justify-between">
+              <span>Soft Skills: 80 × 0.20</span>
+              <span class="font-semibold">= 16 pts</span>
+            </div>
+            <div class="flex justify-between text-red-600">
+              <span>Penalización cambio rubro</span>
+              <span class="font-semibold">-30 pts</span>
+            </div>
+            <div class="border-t border-orange-200 pt-2 flex justify-between font-bold">
+              <span>Puntaje Final</span>
+              <span class="text-red-700">8/100</span>
+            </div>
+          </div>
+          <p class="text-xs text-gray-500 mt-3">Postulante no recomendado para este perfil.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sección 5: Umbrales -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-8 mb-8">
+      <h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+        <span class="w-10 h-10 bg-yellow-500 text-white rounded-full flex items-center justify-center text-lg font-bold">5</span>
+        Umbrales: ¿Recomendado o no?
+      </h2>
+      
+      <p class="text-gray-600 mb-6">
+        Una vez calculado el puntaje final, el sistema asigna una etiqueta según los umbrales 
+        que definiste en el perfil. Tú decides dónde está el límite.
+      </p>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
+          <div class="text-4xl mb-2">✅</div>
+          <h3 class="font-semibold text-green-800">Recomendado</h3>
+          <p class="text-sm text-green-600 mt-2">
+            Puntaje ≥ Umbral Recomendado
+          </p>
+          <p class="text-xs text-green-500 mt-1">
+            Ej: ≥ 70 pts
+          </p>
+        </div>
+
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
+          <div class="text-4xl mb-2">⚠️</div>
+          <h3 class="font-semibold text-yellow-800">Recomendado con reservas</h3>
+          <p class="text-sm text-yellow-600 mt-2">
+            Umbral Reservas ≤ Puntaje &lt; Umbral Recomendado
+          </p>
+          <p class="text-xs text-yellow-500 mt-1">
+            Ej: entre 40 y 69 pts
+          </p>
+        </div>
+
+        <div class="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+          <div class="text-4xl mb-2">❌</div>
+          <h3 class="font-semibold text-red-800">No Recomendado</h3>
+          <p class="text-sm text-red-600 mt-2">
+            Puntaje &lt; Umbral Reservas
+          </p>
+          <p class="text-xs text-red-500 mt-1">
+            Ej: &lt; 40 pts
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Resumen visual final -->
+    <div class="bg-gradient-to-r from-[#2F4DAA] to-blue-700 rounded-xl shadow-lg p-8 text-white">
+      <h2 class="text-2xl font-bold mb-4">En resumen</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+        <div>
+          <div class="text-3xl font-bold">3</div>
+          <p class="text-sm text-blue-200 mt-1">Dimensiones de evaluación</p>
+        </div>
+        <div>
+          <div class="text-3xl font-bold">5</div>
+          <p class="text-sm text-blue-200 mt-1">Parámetros configurables por perfil</p>
+        </div>
+        <div>
+          <div class="text-3xl font-bold">1</div>
+          <p class="text-sm text-blue-200 mt-1">Puntaje final 0-100</p>
+        </div>
+      </div>
+      <p class="text-center text-sm text-blue-200 mt-6">
+        Todo configurable desde la creación del perfil. Sin código, sin complicaciones.
+      </p>
+    </div>
+
+    <!-- Botón Volver -->
+    <div class="text-center mt-10">
+      <a href="/"
+         class="inline-flex items-center px-6 py-3 bg-white text-gray-900 font-medium
+                border-2 border-gray-900 rounded-md
+                hover:bg-gray-100 focus:outline-none focus:ring-2
+                focus:ring-gray-900 focus:ring-offset-2
+                transition-all duration-200">
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+        </svg>
+        Volver al Inicio
+      </a>
+    </div>
+
+    <!-- Footer -->
+    <p class="text-center text-gray-500 text-xs mt-8">
+      © 2026 AI-Recruiter Pro. Todos los derechos reservados.
+    </p>
+  </div>
+</div>
+{% endblock %}

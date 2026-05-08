@@ -1,0 +1,154 @@
+<!-- Tabla de Resultados de Análisis de CVs -->
+
+<div class="table-responsive">
+  <table class="table">
+    <!-- Headers -->
+    <thead>
+      <tr>
+        <th class="w-1/4">Candidato</th>
+        <th class="w-1/5">Perfil</th>
+        <th class="w-1/6">Puntaje</th>
+        <th class="w-1/6">Etiqueta</th>
+        <th class="w-1/6">Fecha</th>
+        <th class="w-1/12">Acciones</th>
+      </tr>
+    </thead>
+    
+    <!-- Body -->
+    <tbody>
+      {% if resultados and resultados|length > 0 %}
+        {% for resultado in resultados %}
+        <tr class="hover:bg-gray-50 transition-colors">
+          <!-- Candidato -->
+          <td>
+            <div class="flex items-center gap-3">
+              <!-- Avatar/Ícono -->
+              <div class="w-10 h-10 rounded-full bg-primary-500 flex items-center justify-center text-white font-semibold">
+                {{ resultado.candidato_nombre[0]|upper if resultado.candidato_nombre else 'C' }}
+              </div>
+              
+              <!-- Nombre -->
+              <div>
+                <p class="font-medium text-gray-900">{{ resultado.candidato_nombre|default('CV ' ~ resultado.cv_id) }}</p>
+                <p class="text-xs text-gray-500">{{ resultado.file_name }}</p>
+              </div>
+            </div>
+          </td>
+          
+          <!-- Perfil -->
+          <td>
+            <p class="text-gray-900">{{ resultado.perfil_titulo }}</p>
+          </td>
+          
+          <!-- Puntaje (con barra de color) -->
+          <td>
+            {% include "components/score_badge.html" with {
+              'puntaje': resultado.puntaje,
+              'show_bar': true
+            } %}
+          </td>
+          
+          <!-- Etiqueta -->
+          <td>
+            {% if resultado.etiqueta == 'Recomendado' %}
+              <span class="badge badge-success">{{ resultado.etiqueta }}</span>
+            {% elif resultado.etiqueta == 'Recomendado con reservas' %}
+              <span class="badge badge-warning">{{ resultado.etiqueta }}</span>
+            {% else %}
+              <span class="badge badge-danger">{{ resultado.etiqueta }}</span>
+            {% endif %}
+          </td>
+          
+          <!-- Fecha -->
+          <td>
+            <p class="text-gray-700">{{ resultado.analyzed_at|format_date('DD/MM/YYYY HH:mm') }}</p>
+          </td>
+          
+          <!-- Acciones -->
+          <td>
+            <div class="flex items-center gap-2">
+              <!-- Ver detalle -->
+              <button 
+                class="text-primary-500 hover:text-primary-600 transition-colors"
+                title="Ver detalle"
+                hx-get="/api/cvs/{{ resultado.cv_id }}/analysis"
+                hx-target="#modal-detalle"
+                hx-trigger="click"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                </svg>
+              </button>
+              
+              <!-- Descargar CV -->
+              <button 
+                class="text-success-500 hover:text-success-600 transition-colors"
+                title="Descargar CV"
+                hx-get="/api/cvs/{{ resultado.cv_id }}/download"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                </svg>
+              </button>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      {% else %}
+        <!-- Estado vacío -->
+        <tr>
+          <td colspan="6" class="text-center py-12">
+            <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+            <p class="text-gray-500 text-lg">No hay resultados de análisis</p>
+            <p class="text-gray-400 text-sm mt-2">Sube CVs y selecciónalos para analizar</p>
+          </td>
+        </tr>
+      {% endif %}
+    </tbody>
+    
+    <!-- Footer con paginación (si aplica) -->
+    {% if total_pages and total_pages > 1 %}
+    <tfoot>
+      <tr>
+        <td colspan="6" class="py-4">
+          <div class="flex items-center justify-between">
+            <p class="text-sm text-gray-500">
+              Mostrando {{ page }} de {{ total_pages }} páginas ({{ total }} resultados)
+            </p>
+            
+            <div class="flex items-center gap-2">
+              <!-- Botón Anterior -->
+              <button 
+                class="btn btn-primary px-4 py-2 text-sm"
+                {% if page <= 1 %}disabled{% endif %}
+                hx-get="/api/history?page={{ page - 1 }}"
+                hx-target="#resultados-tabla"
+              >
+                ← Anterior
+              </button>
+              
+              <!-- Botón Siguiente -->
+              <button 
+                class="btn btn-primary px-4 py-2 text-sm"
+                {% if page >= total_pages %}disabled{% endif %}
+                hx-get="/api/history?page={{ page + 1 }}"
+                hx-target="#resultados-tabla"
+              >
+                Siguiente →
+              </button>
+            </div>
+          </div>
+        </td>
+      </tr>
+    </tfoot>
+    {% endif %}
+  </table>
+</div>
+
+<!-- Modal de Detalle (oculto por defecto) -->
+<div id="modal-detalle" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+  <!-- Se llena dinámicamente con HTMX -->
+</div>

@@ -1,0 +1,68 @@
+# Dependencias y caches de Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.pytest_cache/
+
+# Bases de datos locales
+*.db
+!backend/src/analizer.db
+backend/datos.db
+backend/dev.db
+
+# Archivos de especificación y desarrollo local
+agent_specs/
+.specify/
+.spectit/
+.specs/
+spec2/
+specs/
+
+# CVs y análisis duplicados
+analisis/
+curriculums/
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# Config de asistentes y agentes
+.claude/
+.qwen/
+.cursorrules
+AGENTS.md
+CLAUDE.md
+QWEN.md
+
+# Archivos temporales
+prompt/
+prompt.txt
+cookies.txt
+analizer.txt
+realizar_cambios3.md
+*.md
+!README.md
+
+# Scripts manuales (EXCEPTO init_db_admin que es util en produccion)
+backend/scripts/create_admin.py
+backend/scripts/migrate.py
+# backend/src/init_db_admin.py  # DESCOMENTAR para incluir en Docker
+backend/src/create_admin.py
+backend/src/clean_database.py
+backend/src/clear_profiles.py
+backend/src/migrate_analisis_fields.py
+backend/src/migrate_cv_fields.py
+backend/src/test_extractor.py
+backend/src/test_login.py
+backend/src/test_real_extract.py
+backend/src/debug_path.py
+
+# MCP experimental
+mcp/
+
+# Entorno y git
+.env
+.git/
+.gitignore
+
+# Node
+node_modules/

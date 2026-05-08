@@ -1,0 +1,535 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Inicio - AI-Recruiter Pro{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-background">
+  <!-- Contenido principal -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <!-- Mensaje de bienvenida -->
+    <div class="mb-8">
+      <h2 class="text-3xl font-bold text-gray-900 mb-2">
+        Bienvenido, {{ usuario.nombre if usuario else 'Reclutador' }}
+      </h2>
+      <p class="text-gray-600">
+        Sube CVs y analízalos automáticamente contra perfiles de cargo
+      </p>
+    </div>
+
+    <!-- Zona de Upload de CV -->
+    <div class="max-w-4xl mx-auto">
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-8 mb-8">
+        <h3 class="text-xl font-semibold text-primary-500 mb-4 flex items-center gap-3">
+          <svg style="width: 32px; height: 32px;" class="text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+          </svg>
+          Subir CV (PDF)
+        </h3>
+
+        <!-- Formulario de subida con JavaScript -->
+        <form id="upload-form" onsubmit="return false;" class="space-y-4">
+          <!-- Input file (oculto, permite múltiples) -->
+          <input
+            type="file"
+            id="cv-file"
+            name="files"
+            accept=".pdf"
+            multiple
+            required
+            class="hidden"
+          >
+
+          <!-- Área visible para seleccionar archivo -->
+          <div
+            id="file-drop-zone"
+            class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-primary-500 transition-colors"
+          >
+            <svg style="width: 48px; height: 48px;" class="mx-auto text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+              <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <p class="mt-2 text-sm text-gray-600">
+              <span class="font-medium text-primary-500">Haz clic para seleccionar</span> o arrastra PDFs
+            </p>
+            <p class="mt-1 text-xs text-gray-500">Solo archivos PDF (máx 10MB cada uno)</p>
+          </div>
+
+          <!-- Nombre del archivo seleccionado -->
+          <div id="file-name" class="text-sm text-gray-600 hidden">
+            <span class="font-medium">Archivo seleccionado:</span>
+            <span id="file-name-text" class="ml-2"></span>
+          </div>
+
+          <!-- Botón de subida -->
+          <button
+            type="submit"
+            id="upload-btn"
+            class="w-full btn btn-primary py-2 px-6"
+          >
+            Subir CV
+          </button>
+        </form>
+
+        <!-- Script para manejar la subida con fetch -->
+        <script>
+          document.getElementById('upload-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const files = document.getElementById('cv-file').files;
+            if (!files || files.length === 0) {
+              document.getElementById('upload-message').innerHTML = '<div class="bg-danger-500 text-white px-4 py-3 rounded-lg mb-4"><p class="font-semibold">Error</p><p class="text-sm">Selecciona al menos un archivo PDF</p></div>';
+              document.getElementById('upload-message').classList.remove('hidden');
+              return;
+            }
+
+            // Validar que todos sean PDFs
+            for (let file of files) {
+              if (file.type !== 'application/pdf') {
+                document.getElementById('upload-message').innerHTML = '<div class="bg-danger-500 text-white px-4 py-3 rounded-lg mb-4"><p class="font-semibold">Error</p><p class="text-sm">Solo se aceptan archivos PDF</p></div>';
+                document.getElementById('upload-message').classList.remove('hidden');
+                return;
+              }
+            }
+
+            const formData = new FormData();
+            for (let file of files) {
+              formData.append('files', file);
+            }
+
+            const uploadBtn = document.getElementById('upload-btn');
+            uploadBtn.disabled = true;
+            uploadBtn.textContent = 'Subiendo...';
+            document.getElementById('upload-message').classList.add('hidden');
+
+            try {
+              const res = await fetch('/api/cvs/upload-cv', { method: "POST", body: formData });
+              const data = await res.json();
+              console.log('Resultado:', data);
+
+              if (data.success) {
+                // Mostrar resumen de subida
+                let html = '<div class="bg-success-500 text-white px-4 py-3 rounded-lg mb-4">' +
+                  '<p class="font-semibold">¡' + data.processed + ' CV(s) procesado(s) exitosamente!</p>' +
+                  (data.failed > 0 ? '<p class="text-sm">' + data.failed + ' archivo(s) fallaron</p>' : '') +
+                  '</div>';
+
+                // Mostrar datos extraídos de cada CV
+                html += '<div class="space-y-4">';
+                for (const result of data.results) {
+                  if (result.success) {
+                    html += '<div class="bg-gray-50 border border-gray-200 rounded-lg p-4">';
+                    html += '<h4 class="font-semibold text-primary-500 mb-2">' + result.file_name + '</h4>';
+                    html += '<div class="space-y-1 text-sm">';
+                    if (result.extracted_data && result.extracted_data.nombre) {
+                      html += '<div class="flex gap-2"><span class="font-medium text-gray-700 w-20">Nombre:</span><span>' + result.extracted_data.nombre + '</span></div>';
+                    }
+                    if (result.extracted_data && result.extracted_data.email) {
+                      html += '<div class="flex gap-2"><span class="font-medium text-gray-700 w-20">Email:</span><span>' + result.extracted_data.email + '</span></div>';
+                    }
+                    if (result.extracted_data && result.extracted_data.telefono) {
+                      html += '<div class="flex gap-2"><span class="font-medium text-gray-700 w-20">Teléfono:</span><span>' + result.extracted_data.telefono + '</span></div>';
+                    }
+                    if (result.extracted_data && result.extracted_data.resumen) {
+                      html += '<div class="flex gap-2"><span class="font-medium text-gray-700 w-20">Resumen:</span><span>' + result.extracted_data.resumen + '</span></div>';
+                    }
+                    html += '</div></div>';
+                  } else {
+                    html += '<div class="bg-danger-50 border border-danger-200 rounded-lg p-4">';
+                    html += '<p class="text-danger-700 font-semibold">' + result.file_name + '</p>';
+                    html += '<p class="text-danger-600 text-sm">' + (result.error || 'Error desconocido') + '</p></div>';
+                  }
+                }
+                html += '</div>';
+
+                document.getElementById('upload-message').innerHTML = html;
+                document.getElementById('upload-message').classList.remove('hidden');
+
+                // Recargar la lista de CVs
+                const cvsList = document.getElementById('cvs-list');
+                if (cvsList) {
+                  fetch(window.location.href)
+                    .then(r => r.text())
+                    .then(html => {
+                      const parser = new DOMParser();
+                      const doc = parser.parseFromString(html, 'text/html');
+                      const newList = doc.getElementById('cvs-list');
+                      if (newList) {
+                        cvsList.innerHTML = newList.innerHTML;
+                      }
+                    })
+                    .catch(err => console.error('Error al actualizar lista de CVs:', err));
+                }
+              } else {
+                document.getElementById('upload-message').innerHTML = '<div class="bg-danger-500 text-white px-4 py-3 rounded-lg"><p class="font-semibold">Error</p><p class="text-sm">' + (data.error || 'Error al subir') + '</p></div>';
+                document.getElementById('upload-message').classList.remove('hidden');
+              }
+            } catch (err) {
+              document.getElementById('upload-message').innerHTML = '<div class="bg-danger-500 text-white px-4 py-3 rounded-lg"><p class="font-semibold">Error</p><p class="text-sm">Error de conexión</p></div>';
+              document.getElementById('upload-message').classList.remove('hidden');
+              console.error(err);
+            } finally {
+              uploadBtn.disabled = false;
+              uploadBtn.textContent = 'Subir CV';
+            }
+          });
+        </script>
+
+        <!-- Mensajes de resultado -->
+        <div id="upload-message" class="mt-4 hidden">
+          <!-- Se llena dinámicamente -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Analizar CVs -->
+    <div class="max-w-4xl mx-auto mb-8 bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+      <h3 class="text-xl font-semibold text-primary-500 mb-4 flex items-center gap-3">
+        <svg style="width: 32px; height: 32px;" class="text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V9a2 2 0 012-2h2a2 2 0 012 2v10a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+        </svg>
+        Analizar CVs
+      </h3>
+      <div class="space-y-4">
+        <label for="perfil-select" class="block text-sm font-medium text-gray-700">Perfil de Cargo</label>
+        <select id="perfil-select" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+        </select>
+        <button id="btn-analyze" class="w-full btn btn-success py-2 px-6" disabled>
+          Analizar CVs Seleccionados
+        </button>
+        <div id="analysis-results" class="mt-4 hidden">
+        </div>
+      </div>
+    </div>
+
+    <!-- Lista de CVs subidos -->
+    <div class="max-w-4xl mx-auto">
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-xl font-semibold text-primary-500 flex items-center gap-3">
+            <svg class="w-8 h-8 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+            CVs Subidos
+          </h3>
+          <button id="btn-delete-selected" class="px-4 py-2 bg-danger-500 text-white rounded-md hover:bg-danger-600 focus:outline-none focus:ring-2 focus:ring-danger-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+            Eliminar seleccionados
+          </button>
+        </div>
+
+        <!-- Tabla de CVs -->
+        <div id="cvs-list" class="mt-4">
+          {% if cvs %}
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <input type="checkbox" id="select-all">
+                  </th>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Archivo</th>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Candidato</th>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+                {% for cv in cvs %}
+                  <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      <input type="checkbox" class="cv-checkbox" data-cv-id="{{ cv.id }}">
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ cv.file_name }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ cv.candidate_name or 'N/A' }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ cv.candidate_email or 'N/A' }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ cv.uploaded_at.strftime('%d/%m/%Y') if cv.uploaded_at else 'N/A' }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                      {% if cv.analysis %}
+                        {% set score = cv.analysis.score %}
+                        {% set label = cv.analysis.label or 'No Recomendado' %}
+                        {% if score >= 70 %}
+                          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            {{ label }} ({{ score }}/100)
+                          </span>
+                        {% elif score >= 40 %}
+                          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                            {{ label }} ({{ score }}/100)
+                          </span>
+                        {% else %}
+                          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                            {{ label }} ({{ score }}/100)
+                          </span>
+                        {% endif %}
+                      {% else %}
+                        <span class="text-gray-500">Pendiente</span>
+                      {% endif %}
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          {% else %}
+            <p class="text-gray-500 text-sm">No hay CVs subidos aún</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+  <script>
+    // Manejar clic en el área de arrastrar y soltar
+    document.getElementById('file-drop-zone').addEventListener('click', function() {
+      document.getElementById('cv-file').click();
+    });
+
+    // Mostrar nombre del archivo al seleccionarlo
+    document.getElementById('cv-file').addEventListener('change', function() {
+      const files = this.files;
+      if (files.length > 0) {
+        const totalSize = Array.from(files).reduce((sum, f) => sum + f.size, 0);
+        document.getElementById('file-name-text').innerText = files.length + ' archivo(s) seleccionado(s) (' + (totalSize / 1024).toFixed(1) + ' KB)';
+        document.getElementById('file-name').classList.remove('hidden');
+      }
+    });
+
+    // --- Drag & Drop para upload de CVs ---
+    const dropZone = document.getElementById('file-drop-zone');
+    const fileInput = document.getElementById('cv-file');
+
+    dropZone.addEventListener('dragover', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      this.classList.add('border-primary-500', 'bg-blue-50');
+    });
+
+    dropZone.addEventListener('dragleave', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      this.classList.remove('border-primary-500', 'bg-blue-50');
+    });
+
+    dropZone.addEventListener('drop', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      this.classList.remove('border-primary-500', 'bg-blue-50');
+      
+      const files = e.dataTransfer.files;
+      if (files.length > 0) {
+        fileInput.files = files;
+        // Disparar evento change para actualizar la UI
+        const changeEvent = new Event('change', { bubbles: true });
+        fileInput.dispatchEvent(changeEvent);
+      }
+    });
+
+    // --- Nueva lógica para Analizar CVs ---
+    document.addEventListener('DOMContentLoaded', function() {
+      // Cargar perfiles
+      fetch('/api/profiles?activos=true')
+        .then(response => {
+          if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+          return response.json();
+        })
+        .then(data => {
+          const select = document.getElementById('perfil-select');
+          if (!select) return;
+
+          // Opción por defecto
+          const defaultOption = document.createElement('option');
+          defaultOption.value = '';
+          defaultOption.textContent = '-- Seleccione un perfil --';
+          select.appendChild(defaultOption);
+
+          // Perfiles
+          data.forEach(profile => {
+            const option = document.createElement('option');
+            option.value = profile.id;
+            option.textContent = profile.titulo;
+            select.appendChild(option);
+          });
+        })
+        .catch(err => {
+          console.error('Error al cargar perfiles:', err);
+        });
+
+      // Referencias a elementos
+      const btnAnalyze = document.getElementById('btn-analyze');
+      const perfilSelect = document.getElementById('perfil-select');
+      const analysisResults = document.getElementById('analysis-results');
+      const btnDeleteSelected = document.getElementById('btn-delete-selected');
+
+      // Función para habilitar/deshabilitar los botones
+      function updateButtons() {
+        const hasProfile = perfilSelect && perfilSelect.value !== '';
+        const hasCheckedCVs = document.querySelectorAll('.cv-checkbox:checked').length > 0;
+
+        if (btnAnalyze) {
+          btnAnalyze.disabled = !(hasProfile && hasCheckedCVs);
+        }
+
+        if (btnDeleteSelected) {
+          btnDeleteSelected.disabled = !hasCheckedCVs;
+        }
+      }
+
+      // Listeners
+      if (perfilSelect) {
+        perfilSelect.addEventListener('change', updateButtons);
+      }
+
+      // Delegación de eventos para checkboxes individuales y select-all
+      document.addEventListener('change', function(e) {
+        if (e.target && e.target.classList.contains('cv-checkbox')) {
+          updateButtons();
+        }
+        if (e.target && e.target.id === 'select-all') {
+          const checkboxes = document.querySelectorAll('.cv-checkbox');
+          checkboxes.forEach(cb => cb.checked = e.target.checked);
+          updateButtons();
+        }
+      });
+
+      // Listener para el botón de análisis
+      if (btnAnalyze) {
+        btnAnalyze.addEventListener('click', async function() {
+          const perfilId = perfilSelect?.value;
+          const checkedCVs = document.querySelectorAll('.cv-checkbox:checked');
+          const cvIds = Array.from(checkedCVs).map(cb => parseInt(cb.dataset.cvId));
+
+          if (!perfilId || cvIds.length === 0) return;
+
+          // Deshabilitar y cambiar texto
+          btnAnalyze.disabled = true;
+          const originalText = btnAnalyze.textContent;
+          btnAnalyze.textContent = 'Analizando...';
+
+          // Mostrar barra de progreso
+          analysisResults.innerHTML = `
+            <div id="analysis-progress" class="mt-4">
+              <div class="bg-gray-200 rounded-full h-2 mb-2">
+                <div class="bg-primary-500 h-2 rounded-full animate-pulse w-full"></div>
+              </div>
+              <p class="text-gray-600 text-sm">Analizando CVs... por favor espere</p>
+            </div>
+          `;
+          analysisResults.classList.remove('hidden');
+
+          try {
+            const res = await fetch('/api/cvs/analysis/batch', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                perfil_id: parseInt(perfilId),
+                cv_ids: cvIds
+              })
+            });
+
+            const data = await res.json();
+
+            if (res.ok && data.status === "completed") {
+              // Construir HTML de resultados
+              let html = '<div class="bg-success-500 text-white px-4 py-3 rounded-lg mb-4"><p class="font-semibold">Análisis completado</p></div>';
+
+              data.results.forEach(result => {
+                let badgeClass = 'bg-red-500';
+                let badgeText = 'No Recomendado';
+                if (result.puntaje >= 70) {
+                  badgeClass = 'bg-green-500';
+                  badgeText = 'Recomendado';
+                } else if (result.puntaje >= 40) {
+                  badgeClass = 'bg-yellow-500';
+                  badgeText = 'Recomendado con reservas';
+                }
+
+                html += `
+                  <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 mt-2">
+                    <h4 class="font-semibold text-primary-500 mb-2">${result.file_name || 'CV ' + result.cv_id}</h4>
+                    <div class="flex items-center gap-2">
+                      <span class="px-2 py-1 text-xs font-medium text-white rounded-full ${badgeClass}">${badgeText}</span>
+                      <span class="text-sm font-medium">Puntaje: ${result.puntaje}/100</span>
+                    </div>
+                    <p class="mt-2 text-sm text-gray-700">${result.feedback || 'Sin feedback disponible'}</p>
+                  </div>
+                `;
+              });
+
+              analysisResults.innerHTML = html;
+              analysisResults.classList.remove('hidden');
+
+              // Actualizar la lista de CVs
+              const cvsList = document.getElementById('cvs-list');
+              if (cvsList) {
+                fetch(window.location.href)
+                  .then(r => r.text())
+                  .then(html => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const newList = doc.getElementById('cvs-list');
+                    if (newList) {
+                      cvsList.innerHTML = newList.innerHTML;
+                    }
+                  })
+                  .catch(err => console.error('Error al actualizar lista de CVs:', err));
+              }
+            } else {
+              throw new Error(data.error || 'Error en la respuesta del servidor');
+            }
+          } catch (err) {
+            console.error('Error al analizar:', err, 'data completo:', data);
+            analysisResults.innerHTML = `
+              <div class="bg-danger-500 text-white px-4 py-3 rounded-lg mb-4">
+                <p class="font-semibold">Error</p>
+                <p class="text-sm">${err.message}</p>
+              </div>
+            `;
+            analysisResults.classList.remove('hidden');
+          } finally {
+            // Reactivar botón
+            btnAnalyze.disabled = false;
+            btnAnalyze.textContent = originalText;
+          }
+        });
+      }
+
+      // Listener para el botón de eliminación
+      if (btnDeleteSelected) {
+        btnDeleteSelected.addEventListener('click', async function() {
+          if (!confirm('¿Estás seguro de eliminar los CVs seleccionados?')) {
+            return;
+          }
+
+          const checkedCVs = document.querySelectorAll('.cv-checkbox:checked');
+          const cvIds = Array.from(checkedCVs).map(cb => parseInt(cb.dataset.cvId));
+
+          if (cvIds.length === 0) return;
+
+          try {
+            const res = await fetch('/api/cvs/batch', {
+              method: 'DELETE',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                cv_ids: cvIds
+              })
+            });
+
+            const data = await res.json();
+
+            if (res.ok && data.success) {
+              // Recargar la página para reflejar los cambios
+              window.location.reload();
+            } else {
+              throw new Error(data.error || 'Error al eliminar los CVs');
+            }
+          } catch (err) {
+            console.error('Error al eliminar CVs:', err);
+            alert('Error al eliminar los CVs seleccionados: ' + err.message);
+          }
+        });
+      }
+    });
+  </script>
+{% endblock %}

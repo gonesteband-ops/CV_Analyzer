@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}AI-Recruiter Pro{% endblock %}</title>
+  
+  <!-- Fuentes -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Estilos -->
+  <link rel="stylesheet" href="/static/css/styles.css">
+  
+  <!-- HTMX -->
+  <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+  <script src="/static/js/htmx-config.js"></script>
+  
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="min-h-screen bg-background font-sans">
+  {% block body %}
+  
+  <!-- Sidebar (para páginas autenticadas) -->
+  {% if show_sidebar|default(false) %}
+  <div class="flex min-h-screen">
+    {% include "components/sidebar.html" %}
+    
+    <!-- Contenido principal -->
+    <main class="flex-1 ml-64">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+  {% else %}
+  <!-- Sin sidebar (login, recovery) -->
+  {% block content_no_sidebar %}{% endblock %}
+  {% endif %}
+  
+  {% endblock %}
+  
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

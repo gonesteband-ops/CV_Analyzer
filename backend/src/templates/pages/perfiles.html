@@ -1,0 +1,658 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Perfiles de Cargo - AI-Recruiter Pro{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-background">
+    <!-- Contenido principal -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <!-- Mensaje de bienvenida -->
+    <div class="mb-8">
+      <h2 class="text-3xl font-bold text-gray-900 mb-2">
+        Gestión de Perfiles de Cargo
+      </h2>
+      <p class="text-gray-600">
+        Crea y administra perfiles de cargo para comparar con los CVs de los candidatos
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <!-- Formulario de creación con HTMX -->
+      <div class="lg:col-span-1">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 sticky top-4">
+          <!-- Contenedor de mensajes SEPARADO con auto-fade -->
+          <div id="form-messages"
+               hx-trigger="htmx:load delay:5s"
+               hx-swap="outerHTML swap:0s"
+               class="mb-4 transition-all duration-500 ease-in-out"
+               style="overflow: hidden;"></div>
+
+          <h3 class="text-xl font-semibold text-[#2F4DAA] mb-4">
+            Nuevo Perfil de Cargo
+          </h3>
+
+          <form id="perfil-form" class="space-y-4">
+
+            <div>
+              <label for="titulo" class="block text-sm font-medium text-gray-700 mb-1">
+                Título del Cargo *
+              </label>
+              <input
+                type="text"
+                id="titulo"
+                name="titulo"
+                required
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#2F4DAA] focus:border-[#2F4DAA]"
+                placeholder="Ej: Asistente de Call Center"
+              >
+            </div>
+
+            <div>
+              <label for="descripcion" class="block text-sm font-medium text-gray-700 mb-1">
+                Descripción *
+              </label>
+              <textarea
+                id="descripcion"
+                name="descripcion"
+                rows="3"
+                required
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#2F4DAA] focus:border-[#2F4DAA]"
+                placeholder="Descripción detallada del cargo..."
+              ></textarea>
+            </div>
+
+            <div>
+              <label for="requisitos" class="block text-sm font-medium text-gray-700 mb-1">
+                Requisitos
+              </label>
+              <textarea
+                id="requisitos"
+                name="requisitos"
+                rows="2"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#2F4DAA] focus:border-[#2F4DAA]"
+                placeholder="Requisitos mínimos para el cargo..."
+              ></textarea>
+            </div>
+
+            <div>
+              <label for="responsabilidades" class="block text-sm font-medium text-gray-700 mb-1">
+                Responsabilidades
+              </label>
+              <textarea
+                id="responsabilidades"
+                name="responsabilidades"
+                rows="2"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#2F4DAA] focus:border-[#2F4DAA]"
+                placeholder="Responsabilidades principales del cargo..."
+              ></textarea>
+            </div>
+
+            <div>
+              <label for="nivel_experiencia" class="block text-sm font-medium text-gray-700 mb-1">
+                Nivel de Experiencia
+              </label>
+              <select
+                id="nivel_experiencia"
+                name="nivel_experiencia"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#2F4DAA] focus:border-[#2F4DAA]"
+              >
+                <option value="">Seleccione nivel</option>
+                <option value="Trainee">Trainee</option>
+                <option value="Junior">Junior</option>
+                <option value="Semi Senior">Semi Senior</option>
+                <option value="Senior">Senior</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="departamento" class="block text-sm font-medium text-gray-700 mb-1">
+                Departamento
+              </label>
+              <input
+                type="text"
+                id="departamento"
+                name="departamento"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#2F4DAA] focus:border-[#2F4DAA]"
+                placeholder="Ej: Atención al Cliente"
+              >
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label for="salario_minimo" class="block text-sm font-medium text-gray-700 mb-1">
+                  Salario Mínimo (CLP)
+                </label>
+                <input
+                  type="number"
+                  id="salario_minimo"
+                  name="salario_minimo"
+                  min="0"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#2F4DAA] focus:border-[#2F4DAA]"
+                  placeholder="0"
+                >
+              </div>
+              <div>
+                <label for="salario_maximo" class="block text-sm font-medium text-gray-700 mb-1">
+                  Salario Máximo (CLP)
+                </label>
+                <input
+                  type="number"
+                  id="salario_maximo"
+                  name="salario_maximo"
+                  min="0"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#2F4DAA] focus:border-[#2F4DAA]"
+                  placeholder="0"
+                >
+              </div>
+            </div>
+
+            <div>
+              <label for="habilidades_requeridas" class="block text-sm font-medium text-gray-700 mb-1">
+                Habilidades Requeridas
+              </label>
+              <textarea
+                id="habilidades_requeridas"
+                name="habilidades_requeridas"
+                rows="2"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#2F4DAA] focus:border-[#2F4DAA]"
+                placeholder="Habilidades requeridas separadas por comas..."
+              ></textarea>
+            </div>
+
+            <div>
+              <label for="habilidades_deseables" class="block text-sm font-medium text-gray-700 mb-1">
+                Habilidades Deseables
+              </label>
+              <textarea
+                id="habilidades_deseables"
+                name="habilidades_deseables"
+                rows="2"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#2F4DAA] focus:border-[#2F4DAA]"
+                placeholder="Habilidades deseables separadas por comas..."
+              ></textarea>
+            </div>
+
+            <!-- Sección de Ponderación y Penalizaciones -->
+            <div class="border-t border-gray-200 pt-4 mt-4">
+              <h4 class="text-sm font-semibold text-gray-900 mb-3">Configuración de Evaluación</h4>
+              
+              <!-- Umbrales -->
+              <div class="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label for="umbral_recomendado" class="block text-xs font-medium text-gray-600 mb-1">
+                    Umbral Recomendado (pts)
+                  </label>
+                  <input
+                    type="number"
+                    id="umbral_recomendado"
+                    name="umbral_recomendado"
+                    min="0"
+                    max="100"
+                    value="70"
+                    class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#2F4DAA]"
+                  >
+                </div>
+                <div>
+                  <label for="umbral_reservas" class="block text-xs font-medium text-gray-600 mb-1">
+                    Umbral Reservas (pts)
+                  </label>
+                  <input
+                    type="number"
+                    id="umbral_reservas"
+                    name="umbral_reservas"
+                    min="0"
+                    max="100"
+                    value="40"
+                    class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#2F4DAA]"
+                  >
+                </div>
+              </div>
+
+              <!-- Pesos -->
+              <div class="space-y-3 mb-4">
+                <div>
+                  <div class="flex justify-between mb-1">
+                    <label for="peso_tecnico" class="block text-xs font-medium text-gray-600">Peso Técnico</label>
+                    <span id="peso_tecnico_val" class="text-xs font-bold text-[#2F4DAA]">50%</span>
+                  </div>
+                  <input
+                    type="range"
+                    id="peso_tecnico"
+                    name="peso_tecnico"
+                    min="0"
+                    max="100"
+                    value="50"
+                    class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#2F4DAA]"
+                    oninput="document.getElementById('peso_tecnico_val').textContent = this.value + '%'"
+                  >
+                </div>
+
+                <div>
+                  <div class="flex justify-between mb-1">
+                    <label for="peso_experiencia" class="block text-xs font-medium text-gray-600">Peso Experiencia</label>
+                    <span id="peso_experiencia_val" class="text-xs font-bold text-[#2F4DAA]">30%</span>
+                  </div>
+                  <input
+                    type="range"
+                    id="peso_experiencia"
+                    name="peso_experiencia"
+                    min="0"
+                    max="100"
+                    value="30"
+                    class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#2F4DAA]"
+                    oninput="document.getElementById('peso_experiencia_val').textContent = this.value + '%'"
+                  >
+                </div>
+
+                <div>
+                  <div class="flex justify-between mb-1">
+                    <label for="peso_soft_skills" class="block text-xs font-medium text-gray-600">Peso Soft Skills</label>
+                    <span id="peso_soft_skills_val" class="text-xs font-bold text-[#2F4DAA]">20%</span>
+                  </div>
+                  <input
+                    type="range"
+                    id="peso_soft_skills"
+                    name="peso_soft_skills"
+                    min="0"
+                    max="100"
+                    value="20"
+                    class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#2F4DAA]"
+                    oninput="document.getElementById('peso_soft_skills_val').textContent = this.value + '%'"
+                  >
+                </div>
+              </div>
+
+              <!-- Penalizaciones -->
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <div class="flex justify-between mb-1">
+                    <label for="penalizacion_sobrecalificado" class="block text-xs font-medium text-gray-600">Penal. Sobrecalificado</label>
+                    <span id="penalizacion_sobrecalificado_val" class="text-xs font-bold text-[#F95E50]">25</span>
+                  </div>
+                  <input
+                    type="range"
+                    id="penalizacion_sobrecalificado"
+                    name="penalizacion_sobrecalificado"
+                    min="0"
+                    max="50"
+                    value="25"
+                    class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#F95E50]"
+                    oninput="document.getElementById('penalizacion_sobrecalificado_val').textContent = this.value"
+                  >
+                </div>
+
+                <div>
+                  <div class="flex justify-between mb-1">
+                    <label for="penalizacion_cambio_rubro" class="block text-xs font-medium text-gray-600">Penal. Cambio Rubro</label>
+                    <span id="penalizacion_cambio_rubro_val" class="text-xs font-bold text-[#F95E50]">15</span>
+                  </div>
+                  <input
+                    type="range"
+                    id="penalizacion_cambio_rubro"
+                    name="penalizacion_cambio_rubro"
+                    min="0"
+                    max="50"
+                    value="15"
+                    class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#F95E50]"
+                    oninput="document.getElementById('penalizacion_cambio_rubro_val').textContent = this.value"
+                  >
+                </div>
+              </div>
+            </div>
+
+            <div class="flex gap-2">
+              <button
+                id="btn-save"
+                type="button"
+                onclick="guardarFormulario()"
+                class="flex-1 btn btn-primary py-2 px-4 bg-[#2F4DAA] hover:bg-[#2A469D] text-white font-medium rounded-md"
+              >
+                Crear Perfil
+              </button>
+              <button
+                id="btn-cancel"
+                type="button"
+                onclick="cancelarEdicion()"
+                class="flex-1 btn btn-secondary py-2 px-4 bg-gray-400 hover:bg-gray-500 text-white font-medium rounded-md"
+              >
+                Cancelar
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Lista de perfiles con HTMX -->
+      <div class="lg:col-span-2">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-semibold text-[#2F4DAA]">
+              Perfiles Existentes
+            </h3>
+            <span id="count-perfiles" class="text-sm text-gray-500">Cargando...</span>
+          </div>
+
+          <!-- Contenedor de la lista de perfiles - Cargado vía HTMX -->
+          <div id="lista-perfiles-container" 
+               class="space-y-4"
+               hx-get="/api/profiles/list" 
+               hx-trigger="load"
+               hx-swap="innerHTML"
+               hx-indicator="#loading-indicator">
+            
+            <div id="loading-indicator" class="htmx-request text-center py-8 text-gray-500">
+              <svg class="animate-spin h-8 w-8 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <p class="mt-2">Cargando perfiles...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Template para cada perfil de cargo (fragmento HTMX) -->
+{% macro render_perfil(perfil) %}
+<div id="perfil-{{ perfil.id }}" class="{% if perfil.activo == False %}border-2 rounded-lg p-4 shadow-inner{% else %}border-2 border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow{% endif %}" {% if perfil.activo == False %}style="background-color: #E0D8D7; border-color: #5A5550;"{% endif %} data-perfil-id="{{ perfil.id }}">
+  <div class="flex justify-between items-start">
+    <div class="flex-1">
+      <div class="flex items-center gap-2">
+        <h4 class="font-semibold text-[#2F4DAA] text-lg">{{ perfil.titulo }} ({% if perfil.activo == False %}Inactivo{% else %}Activo{% endif %})</h4>
+      </div>
+
+      <p class="text-sm text-gray-600 mt-1">{{ perfil.descripcion[:150] }}{% if perfil.descripcion|length > 150 %}...{% endif %}</p>
+
+      <div class="mt-3 grid grid-cols-2 gap-2 text-sm">
+        {% if perfil.nivel_experiencia %}
+        <div><span class="font-medium text-gray-600">Nivel:</span> <span class="text-gray-900">{{ perfil.nivel_experiencia }}</span></div>
+        {% endif %}
+        {% if perfil.departamento %}
+        <div><span class="font-medium text-gray-600">Dept:</span> <span class="text-gray-900">{{ perfil.departamento }}</span></div>
+        {% endif %}
+
+        {% if perfil.salario_minimo is not none or perfil.salario_maximo is not none %}
+        <div class="col-span-2">
+          <span class="font-medium text-gray-600">Salario:</span>
+          <span class="text-gray-900">
+            {% if perfil.salario_minimo %} ${{ perfil.salario_minimo|intformatter }}{% else %} No especificado{% endif %}
+            {% if perfil.salario_minimo and perfil.salario_maximo %} - {% endif %}
+            {% if perfil.salario_maximo %} ${{ perfil.salario_maximo|intformatter }}{% else %} No especificado{% endif %}
+          </span>
+        </div>
+        {% endif %}
+
+        {% if perfil.habilidades_requeridas and perfil.habilidades_requeridas|length > 0 %}
+        <div class="col-span-2">
+          <span class="font-medium text-gray-600">Hab. Requeridas:</span>
+          <span class="text-gray-900">{{ perfil.habilidades_requeridas|join(', ') }}</span>
+        </div>
+        {% endif %}
+
+        {% if perfil.habilidades_deseables and perfil.habilidades_deseables|length > 0 %}
+        <div class="col-span-2">
+          <span class="font-medium text-gray-600">Hab. Deseables:</span>
+          <span class="text-gray-900">{{ perfil.habilidades_deseables|join(', ') }}</span>
+        </div>
+        {% endif %}
+      </div>
+
+      <div class="mt-4 flex items-center gap-2 text-xs text-gray-500">
+        <span>Creado: {{ perfil.created_at.strftime('%d/%m/%Y') }}</span>
+      </div>
+    </div>
+
+    <div class="flex space-x-2 ml-4">
+      <button
+        onclick="editarPerfil({{ perfil.id }})"
+        class="text-blue-600 hover:text-blue-800 text-sm font-medium px-3 py-1 rounded hover:bg-blue-50 transition-colors"
+      >
+        Editar
+      </button>
+      <button
+        onclick="toggleActivo({{ perfil.id }})"
+        class="{% if perfil.activo %}text-red-600 hover:text-red-800{% else %}text-green-600 hover:text-green-800{% endif %} text-sm font-medium px-3 py-1 rounded hover:bg-{% if perfil.activo %}red-50{% else %}green-50{% endif %} transition-colors"
+      >
+        {% if perfil.activo %}Desactivar{% else %}Activar{% endif %}
+      </button>
+    </div>
+  </div>
+</div>
+{% endmacro %}
+
+<script src="https://unpkg.com/htmx.org@1.9.10"></script>
+<style>
+  @keyframes fadeOutUp {
+    0% {
+      opacity: 1;
+      transform: translateY(0);
+      max-height: 100px;
+    }
+    100% {
+      opacity: 0;
+      transform: translateY(-10px);
+      max-height: 0;
+    }
+  }
+
+  .message-fade-out {
+    animation: fadeOutUp 0.5s ease-in-out forwards;
+  }
+</style>
+<script>
+// Auto-fade del mensaje de éxito después de 5 segundos
+document.addEventListener('htmx:afterSwap', function(evt) {
+  if (evt.detail.xhr.status === 201 || evt.detail.xhr.status === 200) {
+    const msgDiv = document.getElementById('form-messages');
+    if (msgDiv && msgDiv.children.length > 0) {
+      setTimeout(() => {
+        msgDiv.firstElementChild?.classList.add('message-fade-out');
+        setTimeout(() => {
+          msgDiv.innerHTML = '';
+        }, 500);
+      }, 5000);
+    }
+  }
+});
+
+// Función para editar un perfil
+async function editarPerfil(id) {
+  try {
+    const response = await fetch(`/api/profiles/${id}`);
+    if (response.ok) {
+      const perfil = await response.json();
+
+      // Llenar el formulario con los datos del perfil
+      const form = document.getElementById('perfil-form');
+
+      // Obtener los inputs directamente y establecer valores (SIN readonly/disabled)
+      const campos = {
+        'titulo': perfil.titulo,
+        'descripcion': perfil.descripcion,
+        'requisitos': perfil.requisitos || '',
+        'responsabilidades': perfil.responsabilidades || '',
+        'nivel_experiencia': perfil.nivel_experiencia || '',
+        'departamento': perfil.departamento || '',
+        'salario_minimo': perfil.salario_minimo || '',
+        'salario_maximo': perfil.salario_maximo || '',
+        'habilidades_requeridas': perfil.habilidades_requeridas ? perfil.habilidades_requeridas.join(', ') : '',
+        'habilidades_deseables': perfil.habilidades_deseables ? perfil.habilidades_deseables.join(', ') : ''
+      };
+
+      for (const [fieldId, value] of Object.entries(campos)) {
+        const field = document.getElementById(fieldId);
+        if (field) {
+          field.value = value;
+          // Asegurar que NO está deshabilitado o readonly
+          field.removeAttribute('disabled');
+          field.removeAttribute('readonly');
+        }
+      }
+
+      // Llenar los sliders y campos numéricos de umbrales, pesos y penalizaciones
+      const camposSliders = {
+        'umbral_recomendado': perfil.umbral_recomendado || 70,
+        'umbral_reservas': perfil.umbral_reservas || 40,
+        'peso_tecnico': perfil.peso_tecnico || 50,
+        'peso_experiencia': perfil.peso_experiencia || 30,
+        'peso_soft_skills': perfil.peso_soft_skills || 20,
+        'penalizacion_sobrecalificado': perfil.penalizacion_sobrecalificado || 25,
+        'penalizacion_cambio_rubro': perfil.penalizacion_cambio_rubro || 15
+      };
+
+      for (const [fieldId, value] of Object.entries(camposSliders)) {
+        const field = document.getElementById(fieldId);
+        const valueSpan = document.getElementById(fieldId + '_val');
+        if (field) {
+          field.value = value;
+          field.removeAttribute('disabled');
+          field.removeAttribute('readonly');
+          // Disparar evento input para actualizar el span de valor
+          field.dispatchEvent(new Event('input'));
+        }
+        // Actualizar el span de valor si existe
+        if (valueSpan) {
+          valueSpan.textContent = value + (fieldId.includes('penalizacion') ? '' : '%');
+        }
+      }
+
+      // Configurar HTMX para actualizar (PUT) - el botón submit se encarga
+      form.dataset.editingId = id;
+      form.dataset.putUrl = `/api/profiles/${id}`;
+
+      // Cambiar botón a "Guardar Cambios"
+      const btnSave = document.getElementById('btn-save');
+      if (btnSave) {
+        btnSave.textContent = 'Guardar Cambios';
+      }
+
+      // Scroll hacia el formulario
+      document.querySelector('.lg\\:col-span-1').scrollIntoView({ behavior: 'smooth' });
+    } else {
+      alert('Error al cargar los datos del perfil');
+    }
+  } catch (error) {
+    console.error('Error al editar perfil:', error);
+    alert('Error de conexión');
+  }
+}
+
+// Función para eliminar un perfil
+function eliminarPerfil(id) {
+  if (!confirm('¿Estás seguro de que deseas eliminar este perfil? Esta acción no se puede deshacer.')) {
+    return;
+  }
+
+  // Usar HTMX para hacer el DELETE
+  htmx.ajax('DELETE', `/api/profiles/${id}`, {
+    swap: 'none'  // No hacer swap automático (OOB maneja todo)
+  });
+}
+
+// Función para cancelar edición y volver a modo creación
+function cancelarEdicion() {
+  const form = document.getElementById('perfil-form');
+  if (form) {
+    // Resetear el formulario
+    form.reset();
+
+    // Limpiar datos de edición
+    delete form.dataset.editingId;
+    delete form.dataset.putUrl;
+
+    // Limpiar mensajes
+    const msgDiv = document.getElementById('form-messages');
+    if (msgDiv) {
+      msgDiv.innerHTML = '';
+    }
+
+    // Cambiar botón a "Crear Perfil"
+    const btnSave = document.getElementById('btn-save');
+    if (btnSave) {
+      btnSave.textContent = 'Crear Perfil';
+    }
+
+    // Scroll hacia el formulario
+    document.querySelector('.lg\\:col-span-1')?.scrollIntoView({ behavior: 'smooth' });
+  }
+}
+
+// Función para guardar formulario (llamada desde el botón)
+async function guardarFormulario() {
+  const form = document.getElementById('perfil-form');
+  const editingId = form.dataset.editingId;
+  const putUrl = form.dataset.putUrl;
+  
+  console.log('=== GUARDAR FORMULARIO ===');
+  console.log('editingId:', editingId);
+  console.log('putUrl:', putUrl);
+  
+  if (editingId && putUrl) {
+    console.log('MODO EDICIÓN: Enviando PUT a', putUrl);
+    // MODO EDICIÓN: Usar PUT con fetch
+    try {
+      const formData = new FormData(form);
+      console.log('FormData:', Object.fromEntries(formData));
+      
+      const response = await fetch(putUrl, {
+        method: 'PUT',
+        body: formData,
+      });
+      
+      console.log('Response status:', response.status);
+      
+      if (response.ok) {
+        console.log('ÉXITO: Perfil actualizado');
+        cancelarEdicion();
+        htmx.ajax('GET', '/api/profiles/list', { target: '#lista-perfiles-container' });
+        document.getElementById('form-messages').innerHTML = '<div class="bg-green-500 text-white p-3 rounded mb-4">Perfil actualizado correctamente</div>';
+      } else {
+        const error = await response.json();
+        console.error('Error del servidor:', error);
+        alert('Error al actualizar: ' + (error.detail || 'Error desconocido'));
+      }
+    } catch (error) {
+      console.error('Error al editar:', error);
+      alert('Error de conexión al actualizar perfil');
+    }
+  } else {
+    console.log('MODO CREACIÓN: Enviando POST');
+    // MODO CREACIÓN: Usar HTMX POST normal
+    htmx.ajax('POST', '/api/profiles', {
+      source: form,
+      target: '#form-messages',
+      swap: 'innerHTML',
+      values: Object.fromEntries(new FormData(form))
+    }).then(() => {
+      form.reset();
+    });
+  }
+}
+
+// Configuración inicial del formulario - REMOVIDO porque ahora usamos guardarFormulario()
+
+// Función para activar/desactivar un perfil usando HTMX (global para onclick)
+async function toggleActivo(id) {
+  // Obtener el botón que disparó el evento usando querySelector
+  const button = document.querySelector(`[onclick*='toggleActivo("${id}")']`);
+  const buttonText = button ? button.textContent.trim() : '';
+
+  // Si es "Desactivar", pedir confirmación
+  if (buttonText === 'Desactivar') {
+    const confirmed = confirm('¿Está seguro que quiere desactivar este perfil?');
+    if (!confirmed) {
+      return; // Usuario canceló, no hacer nada
+    }
+  }
+
+  // Usar HTMX para hacer el request PATCH
+  // El endpoint retorna HTML con hx-swap-oob que actualiza la lista y muestra el mensaje
+  htmx.ajax('PATCH', `/api/profiles/${id}/toggle-activo`, {
+    target: 'body',
+    swap: 'none'
+  });
+}
+</script>
+{% endblock %}

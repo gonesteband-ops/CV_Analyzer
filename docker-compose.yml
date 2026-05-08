@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    container_name: ai-recruiter-pro
+    ports:
+      - "8001:8000"
+    env_file:
+      - .env
+    volumes:
+      # Persistencia de uploads con permisos
+      - uploads_data:/app/src/uploads
+      # Persistencia de base de datos SQLite
+      - ./backend/src/analizer.db:/app/src/analizer.db
+    restart: unless-stopped
+
+volumes:
+  uploads_data:

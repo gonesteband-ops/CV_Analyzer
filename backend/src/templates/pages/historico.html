@@ -1,0 +1,174 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Histórico de Análisis - AI-Recruiter Pro{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+  <!-- Contenido principal -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <!-- Encabezado -->
+    <div class="mb-8">
+      <h2 class="text-3xl font-bold text-gray-900 mb-2">Histórico de Análisis</h2>
+      <p class="text-gray-600">Revisa y filtra los análisis realizados contra perfiles de cargo</p>
+    </div>
+
+    <!-- Filtros -->
+    <div class="max-w-6xl mx-auto mb-8 bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <h3 class="text-xl font-semibold text-[#2F4DAA] mb-4 flex items-center gap-3">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+        Filtros Avanzados
+      </h3>
+
+      <form id="filters-form" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
+            hx-get="/api/history/table-html"
+            hx-target="#history-table-container"
+            hx-swap="innerHTML"
+            hx-trigger="submit">
+        <!-- Perfil -->
+        <div>
+          <label for="filter-perfil" class="block text-sm font-medium text-gray-700 mb-1">Perfil de Cargo</label>
+          <select id="filter-perfil" name="perfil_id" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#2F4DAA] focus:border-[#2F4DAA]">
+            <option value="">Todos los perfiles</option>
+            <!-- Se llenará dinámicamente con JavaScript -->
+          </select>
+        </div>
+
+        <!-- Fecha desde -->
+        <div>
+          <label for="filter-desde" class="block text-sm font-medium text-gray-700 mb-1">Desde</label>
+          <input type="date" id="filter-desde" name="fecha_desde" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#2F4DAA] focus:border-[#2F4DAA]">
+        </div>
+
+        <!-- Fecha hasta -->
+        <div>
+          <label for="filter-hasta" class="block text-sm font-medium text-gray-700 mb-1">Hasta</label>
+          <input type="date" id="filter-hasta" name="fecha_hasta" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#2F4DAA] focus:border-[#2F4DAA]">
+        </div>
+
+        <!-- Puntaje mínimo -->
+        <div>
+          <label for="filter-puntaje-min" class="block text-sm font-medium text-gray-700 mb-1">Puntaje Mínimo</label>
+          <input type="number" id="filter-puntaje-min" name="puntaje_min" min="0" max="100" placeholder="0" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#2F4DAA] focus:border-[#2F4DAA]">
+        </div>
+
+        <!-- Puntaje máximo -->
+        <div>
+          <label for="filter-puntaje-max" class="block text-sm font-medium text-gray-700 mb-1">Puntaje Máximo</label>
+          <input type="number" id="filter-puntaje-max" name="puntaje_max" min="0" max="100" placeholder="100" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#2F4DAA] focus:border-[#2F4DAA]">
+        </div>
+
+        <!-- Etiqueta -->
+        <div>
+          <label for="filter-etiqueta" class="block text-sm font-medium text-gray-700 mb-1">Etiqueta</label>
+          <select id="filter-etiqueta" name="etiqueta" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#2F4DAA] focus:border-[#2F4DAA]">
+            <option value="">Todas las etiquetas</option>
+            <option value="Recomendado">Recomendado</option>
+            <option value="Recomendado con reservas">Recomendado con reservas</option>
+            <option value="No Recomendado">No Recomendado</option>
+          </select>
+        </div>
+
+        <!-- Búsqueda por nombre -->
+        <div>
+          <label for="filter-nombre" class="block text-sm font-medium text-gray-700 mb-1">Nombre del Candidato</label>
+          <input type="text" id="filter-nombre" name="busqueda" placeholder="Buscar por nombre..." class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#2F4DAA] focus:border-[#2F4DAA]">
+        </div>
+
+        <!-- Botones -->
+        <div class="md:col-span-2 lg:col-span-4 flex gap-3 pt-2">
+          <button type="submit" class="px-4 py-2 bg-white text-black border-2 border-black rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900">
+            Aplicar Filtros
+          </button>
+          <button type="button" id="clear-filters" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400">
+            Limpiar
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Acciones -->
+    <div class="max-w-6xl mx-auto mb-6 flex justify-between items-center">
+      <h3 class="text-xl font-semibold text-gray-900">Resultados</h3>
+      <button type="button" id="export-btn" class="flex items-center gap-2 px-4 py-2 bg-white text-black border-2 border-black rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+        </svg>
+        Exportar XLSX
+      </button>
+    </div>
+
+    <!-- Tabla de resultados -->
+    <div id="history-table-container" class="max-w-6xl mx-auto bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+      <!-- Cargado dinámicamente vía HTMX -->
+      <div class="text-center py-12 text-gray-500">
+        <p>Cargando análisis...</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Interceptador de HTMX para limpiar campos vacíos antes de enviar
+  document.body.addEventListener('htmx:configRequest', function(event) {
+    const form = document.getElementById('filters-form');
+    if (event.detail.verb === 'get' && form.contains(event.detail.elt)) {
+      // Crear nuevo objeto de params solo con campos no vacíos
+      const newParams = {};
+      const formData = new FormData(form);
+      for (const [key, value] of formData.entries()) {
+        if (value && value.trim()) {
+          newParams[key] = value.trim();
+        }
+      }
+      event.detail.parameters = newParams;
+    }
+  });
+
+  // Cargar perfiles para el filtro
+  document.addEventListener('DOMContentLoaded', function() {
+    // Cargar perfiles activos para el dropdown
+    fetch('/api/profiles?activos=true')
+      .then(response => {
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        return response.json();
+      })
+      .then(data => {
+        const select = document.getElementById('filter-perfil');
+        data.forEach(profile => {
+          const option = document.createElement('option');
+          option.value = profile.id;
+          option.textContent = profile.titulo;
+          select.appendChild(option);
+        });
+      })
+      .catch(err => {
+        console.error('Error al cargar perfiles:', err);
+      });
+
+    // Evento para limpiar filtros
+    document.getElementById('clear-filters').addEventListener('click', function() {
+      document.getElementById('filters-form').reset();
+      // Recargar tabla con filtros vacíos
+      htmx.ajax('GET', '/api/history/table-html', {
+        target: '#history-table-container',
+        swap: 'innerHTML'
+      });
+    });
+
+    // Evento para exportar XLSX con filtros aplicados
+    document.getElementById('export-btn').addEventListener('click', function() {
+      const form = document.getElementById('filters-form');
+      const params = new URLSearchParams();
+      Array.from(form.elements).forEach(el => {
+        if (el.name && el.value.trim()) {
+          params.append(el.name, el.value.trim());
+        }
+      });
+      const url = '/api/history/export?' + params.toString();
+      window.location.href = url;
+    });
+  });
+</script>
+{% endblock %}

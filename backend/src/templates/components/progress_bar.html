@@ -1,0 +1,77 @@
+<!-- Barra de Progreso Individual para Upload de Archivos -->
+
+<div 
+  id="{{ item_id|default('progress-' ~ file_index) }}" 
+  class="progress-item card p-4 mb-3"
+  data-file-id="{{ file_id|default('') }}"
+  data-upload-id="{{ upload_id|default('') }}"
+>
+  <!-- Header con información del archivo -->
+  <div class="flex items-center justify-between mb-2">
+    <div class="flex items-center gap-3">
+      <!-- Ícono de archivo -->
+      <svg class="w-6 h-6 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+      </svg>
+      
+      <!-- Nombre del archivo -->
+      <div>
+        <p class="font-medium text-gray-700 truncate max-w-md">{{ file_name }}</p>
+        <p class="text-xs text-gray-500">{{ file_size_mb }} MB • {{ file_type|upper }}</p>
+      </div>
+    </div>
+    
+    <!-- Estado -->
+    <span class="status-badge badge 
+      {% if status == 'uploaded' %}badge-success
+      {% elif status == 'parsing' %}badge-warning
+      {% elif status == 'analyzing' %}badge-warning
+      {% elif status == 'analyzed' %}badge-success
+      {% elif status == 'failed' %}badge-danger
+      {% else %}badge-warning{% endif %}">
+      {% if status == 'uploaded' %}Subido
+      {% elif status == 'parsing' %}Procesando
+      {% elif status == 'analyzing' %}Analizando
+      {% elif status == 'analyzed' %}Completado
+      {% elif status == 'failed' %}Error
+      {% else %}En progreso{% endif %}
+    </span>
+  </div>
+  
+  <!-- Barra de progreso -->
+  <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+    <div 
+      class="progress-bar h-full rounded-full transition-all duration-500 ease-out
+        {% if progress >= 100 %}
+          {% if status == 'analyzed' %}bg-success-500
+          {% elif status == 'failed' %}bg-danger-500
+          {% else %}bg-primary-500{% endif %}
+        {% elif progress >= 50 %}bg-primary-500
+        {% else %}bg-primary-500{% endif %}"
+      style="width: {{ progress|default(0) }}%"
+      data-progress="{{ progress|default(0) }}"
+    ></div>
+  </div>
+  
+  <!-- Texto de estado -->
+  <p class="text-sm text-gray-500 mt-2 status-text">
+    {% if status == 'analyzed' %}
+      ✓ Análisis completado
+    {% elif status == 'failed' %}
+      ✗ {{ error_message|default('Error al procesar') }}
+    {% elif progress >= 100 %}
+      ✓ {{ status_message|default('Completado') }}
+    {% elif progress >= 50 %}
+      ⏳ {{ status_message|default('Procesando...') }}
+    {% else %}
+      ⏳ {{ status_message|default('Subiendo...') }}
+    {% endif %}
+  </p>
+  
+  <!-- Mensaje de error (si aplica) -->
+  {% if error_message and status == 'failed' %}
+  <div class="mt-2 p-2 bg-danger-50 border border-danger-500 rounded text-xs text-danger-500">
+    {{ error_message }}
+  </div>
+  {% endif %}
+</div>

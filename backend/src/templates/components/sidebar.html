@@ -1,0 +1,89 @@
+<!-- Sidebar de navegación -->
+<aside class="fixed left-0 top-0 h-full w-64 bg-white shadow-lg z-50">
+  <!-- Logo -->
+  <div class="h-16 flex items-center px-6 border-b border-gray-200">
+    <a href="/" class="text-xl font-bold text-primary-500 hover:text-primary-600 transition-colors">
+      AI-Recruiter
+    </a>
+  </div>
+  
+  <!-- Navegación -->
+  <nav class="mt-6 px-4">
+    <!-- Home -->
+    <a href="/"
+       class="flex items-center px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors {{ 'bg-primary-500 text-white' if request.url.path == '/' else '' }}">
+      <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+      </svg>
+      Inicio
+    </a>
+    
+    <!-- Perfiles -->
+    <a href="/perfiles" 
+       class="flex items-center px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors {{ 'bg-primary-500 text-white' if request.url.path == '/perfiles' else '' }}">
+      <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+      </svg>
+      Perfiles
+    </a>
+    
+    <!-- Portales de Empleo -->
+    <a href="/portales" 
+       class="flex items-center px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors {{ 'bg-primary-500 text-white' if request.url.path == '/portales' else '' }}">
+      <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+      </svg>
+      Portales de Empleo
+    </a>
+    
+    <!-- Histórico -->
+    <a href="/historico"
+       class="flex items-center px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors {{ 'bg-primary-500 text-white' if request.url.path == '/historico' else '' }}">
+      <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      Histórico
+    </a>
+
+    <!-- Acerca de -->
+    <a href="/acerca"
+       class="flex items-center px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors {{ 'bg-primary-500 text-white' if request.url.path == '/acerca' else '' }}">
+      <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      Acerca de
+    </a>
+
+    <!-- Administración de Usuarios (solo Admin) -->
+    {% if usuario and usuario.rol == 'admin' %}
+    <a href="/admin/usuarios"
+       class="flex items-center px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors {{ 'bg-primary-500 text-white' if request.url.path == '/admin/usuarios' else '' }}">
+      <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+      </svg>
+      Administración
+    </a>
+    {% endif %}
+  </nav>
+  
+  <!-- Usuario -->
+  <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 bg-white">
+    <!-- Avatar y Nombre -->
+    <div class="flex items-center gap-3 mb-3">
+      <div class="w-8 h-8 rounded-full bg-primary-500 flex items-center justify-center text-white font-semibold text-sm">
+        {{ usuario.nombre[0].upper() if usuario else 'U' }}
+      </div>
+      <div class="flex-1">
+        <div class="flex items-center gap-2">
+          <p class="text-sm font-medium text-gray-700">{% if usuario and usuario.rol == 'admin' %}Administrador{% else %}{{ usuario.nombre if usuario else 'Usuario' }}{% endif %}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Botón Cerrar Sesión -->
+    <a href="/logout"
+       class="w-full btn btn-danger px-4 py-2 text-sm bg-danger-500 hover:bg-danger-600 text-white font-medium rounded-md transition-all duration-200 active:scale-95">
+      Cerrar Sesión
+    </a>
+  </div>
+</aside>

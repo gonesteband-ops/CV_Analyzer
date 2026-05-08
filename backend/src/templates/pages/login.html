@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - AI-Recruiter Pro</title>
+  
+  <!-- Fuentes -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Estilos -->
+  <link rel="stylesheet" href="/static/css/styles.css">
+  
+  <!-- HTMX -->
+  <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+  <script src="/static/js/htmx-config.js"></script>
+</head>
+<body class="min-h-screen flex items-center justify-center" 
+      style="background: url('https://bukwebapp-enterprise-chile.s3.amazonaws.com/c2203c13-8c3c-4a52-b46b-5f6b393b0730/generals/hexagonos/hex_login.jpg') no-repeat center center fixed; background-size: cover;">
+  
+  <!-- Overlay oscuro -->
+  <div class="absolute inset-0 bg-black/40"></div>
+  
+  <!-- Contenedor del login -->
+  <div class="relative z-10 w-full max-w-md px-4">
+    <div class="bg-white rounded-lg shadow-xl p-8">
+      <!-- Logo / Título -->
+      <div class="text-center mb-8">
+        <h1 class="text-3xl font-bold text-primary-500">AI-Recruiter Pro</h1>
+        <p class="text-gray-600 mt-2">Call Center Edition</p>
+      </div>
+      
+      <!-- Formulario -->
+      <form method="POST" action="/api/auth/login" class="space-y-6">
+
+        <!-- Email -->
+        <div>
+          <label for="email" class="form-label">
+            Correo Electrónico
+          </label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            required
+            class="form-input"
+            placeholder="tu@empresa.cl"
+          >
+        </div>
+
+        <!-- Contraseña -->
+        <div>
+          <label for="password" class="form-label">
+            Contraseña
+          </label>
+          <input
+            type="password"
+            id="password"
+            name="password"
+            required
+            class="form-input"
+            placeholder="••••••••"
+          >
+        </div>
+
+        <!-- Mensaje de error desde URL -->
+        {% if request.query_params.get('error') == 'invalid_credentials' %}
+        <div class="bg-danger-500 text-white px-4 py-3 rounded-lg">
+          <p class="font-semibold">Error de autenticación</p>
+          <p class="text-sm">Email o contraseña inválidos</p>
+        </div>
+        {% endif %}
+        
+        {% if request.query_params.get('error') == 'server_error' %}
+        <div class="bg-danger-500 text-white px-4 py-3 rounded-lg">
+          <p class="font-semibold">Error de servidor</p>
+          <p class="text-sm">Intente nuevamente más tarde</p>
+        </div>
+        {% endif %}
+
+        <!-- Botón de login -->
+        <button
+          type="submit"
+          class="w-full btn btn-primary py-3 text-lg font-semibold"
+        >
+          Iniciar Sesión
+        </button>
+
+        <!-- Recuperar contraseña -->
+        <div class="text-center mt-4">
+          <a href="/recover-password" class="text-sm text-primary-500 hover:text-primary-600 transition-colors">
+            ¿Olvidaste tu contraseña?
+          </a>
+        </div>
+      </form>
+    </div>
+    
+    <!-- Footer -->
+    <div class="text-center mt-6 text-white/80 text-sm">
+      <p>&copy; 2026 AI-Recruiter Pro. Todos los derechos reservados.</p>
+    </div>
+  </div>
+  
+</body>
+</html>

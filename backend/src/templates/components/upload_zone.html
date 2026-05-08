@@ -1,0 +1,378 @@
+<!-- Zona de Upload Drag-and-Drop con HTMX -->
+
+<div
+  id="upload-zone"
+  class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-primary-500 transition-colors cursor-pointer bg-gray-50"
+  hx-post="/api/cvs/upload"
+  hx-encoding="multipart/form-data"
+  hx-trigger="change from:input[type='file']"
+  hx-target="#upload-progress-list"
+  hx-swap="innerHTML"
+  hx-on::before-request="handleUploadStart(event)"
+  hx-on::after-request="handleUploadComplete(event)"
+>
+  <!-- Input de archivo (oculto visualmente pero accesible) -->
+  <input
+    type="file"
+    id="cv-files"
+    name="files"
+    multiple
+    accept=".pdf,.docx,.txt"
+    class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+  >
+
+  <!-- Ícono -->
+  <div class="mb-4">
+    <svg class="w-16 h-16 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+    </svg>
+  </div>
+
+  <!-- Texto -->
+  <p class="text-lg font-semibold text-gray-700 mb-2">
+    Arrastra y suelta tus CVs aquí
+  </p>
+  <p class="text-gray-500 mb-4">
+    o haz clic para seleccionar archivos
+  </p>
+
+  <!-- Tipos de archivo soportados -->
+  <div class="flex items-center justify-center gap-2 text-sm text-gray-500">
+    <span class="badge bg-gray-200">PDF</span>
+    <span class="badge bg-gray-200">DOCX</span>
+    <span class="badge bg-gray-200">TXT</span>
+    <span class="mx-2">•</span>
+    <span>Máx. 10MB por archivo</span>
+  </div>
+
+  <!-- Límite de archivos -->
+  <p class="text-xs text-gray-400 mt-2">
+    Hasta 50 archivos por lote
+  </p>
+</div>
+
+<!-- Mensaje de error -->
+<div id="upload-error" class="hidden mt-4 p-4 bg-danger-50 border border-danger-500 rounded-lg">
+  <p class="text-danger-500 font-semibold">Error al subir archivos</p>
+  <p id="upload-error-message" class="text-danger-500 text-sm"></p>
+</div>
+
+<!-- Contenedor de progreso -->
+<div id="upload-progress-list" class="mt-6 space-y-3">
+  <!-- Se llena dinámicamente con las barras de progreso -->
+</div>
+
+<!-- Contenedor de análisis -->
+<div id="analysis-section" class="card mt-8" style="display: none;">
+  <h3 class="text-lg font-semibold text-primary-500 mb-4">Analizar CVs Subidos</h3>
+  
+  <div class="flex items-center gap-4">
+    <div class="flex-1">
+      <label for="perfil-select" class="form-label block text-sm font-medium text-gray-700 mb-1">
+        Seleccionar Perfil de Cargo
+      </label>
+      <select
+        id="perfil-select"
+        name="perfil_id"
+        class="form-input w-full border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500"
+      >
+        <option value="">-- Cargando perfiles... --</option>
+      </select>
+    </div>
+    
+    <div class="flex items-end pb-2">
+      <button
+        id="btn-analizar"
+        class="btn btn-primary px-6 py-2"
+        onclick="iniciarAnalisis()"
+      >
+        <svg class="w-5 h-5 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+        </svg>
+        Analizar CVs
+      </button>
+    </div>
+  </div>
+  
+  <!-- Barra de progreso del análisis -->
+  <div id="analysis-progress" class="mt-4 hidden">
+    <div class="flex items-center justify-between mb-2">
+      <span class="text-sm font-medium text-gray-700">Procesando análisis...</span>
+      <span id="analysis-progress-text" class="text-sm text-gray-500">0%</span>
+    </div>
+    <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+      <div id="analysis-progress-bar" class="h-full bg-primary-500 rounded-full transition-all duration-500" style="width: 0%"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+let currentUploadId = null;
+let pollInterval = null;
+
+function handleUploadStart(event) {
+  const files = event.target.querySelector('input[type="file"]').files;
+  const progressList = document.getElementById('upload-progress-list');
+  
+  // Limpiar lista anterior
+  progressList.innerHTML = '';
+  
+  // Mostrar contenedor de análisis
+  document.getElementById('analysis-section').style.display = 'block';
+
+  // Crear barra de progreso para cada archivo
+  Array.from(files).forEach((file, index) => {
+    const progressItem = document.createElement('div');
+    progressItem.id = `progress-${index}-${Date.now()}`;
+    progressItem.className = 'card p-4 bg-white shadow-sm';
+    progressItem.innerHTML = `
+      <div class="flex items-center justify-between mb-2">
+        <span class="font-medium text-gray-700 truncate">${file.name}</span>
+        <span class="text-sm text-gray-500">${(file.size / 1024 / 1024).toFixed(2)} MB</span>
+      </div>
+      <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+        <div class="progress-bar h-full bg-primary-500 rounded-full transition-all duration-300" style="width: 0%"></div>
+      </div>
+      <p class="text-sm text-gray-500 mt-2 status-text">Subiendo...</p>
+    `;
+    progressList.appendChild(progressItem);
+  });
+}
+
+function handleUploadComplete(event) {
+  try {
+    const response = JSON.parse(event.detail.xhr.responseText);
+    
+    // Manejar errores HTTP
+    if (event.detail.xhr.status >= 400) {
+      let errorMsg = 'Error al subir archivos';
+      if (response.detail) {
+        if (typeof response.detail === 'object' && response.detail.errors) {
+          errorMsg = response.detail.errors.join(', ');
+        } else if (typeof response.detail === 'string') {
+          errorMsg = response.detail;
+        }
+      }
+      showError(errorMsg);
+      return;
+    }
+
+    // Guardar upload_id para polling
+    currentUploadId = response.upload_id;
+
+    // Actualizar barras de progreso a 100%
+    const progressItems = document.querySelectorAll('.progress-bar');
+    progressItems.forEach(bar => {
+      bar.style.width = '100%';
+    });
+
+    // Actualizar estados
+    const statusTexts = document.querySelectorAll('.status-text');
+    statusTexts.forEach(text => {
+      text.textContent = '✓ Subido - Listo para analizar';
+      text.className = 'text-sm text-success-600 mt-2 font-medium';
+    });
+
+    // Limpiar input
+    document.getElementById('cv-files').value = '';
+    
+    // Cargar perfiles disponibles
+    cargarPerfiles();
+    
+    // Iniciar polling de estado
+    iniciarPolling();
+
+  } catch (error) {
+    showError('Error al procesar respuesta del servidor: ' + error.message);
+    console.error('Error:', error);
+  }
+}
+
+function cargarPerfiles() {
+  const select = document.getElementById('perfil-select');
+  select.innerHTML = '<option value="">-- Cargando... --</option>';
+  
+  fetch('/api/profiles', {
+    headers: {
+      'Accept': 'application/json'
+    }
+  })
+  .then(response => {
+    if (!response.ok) throw new Error('Error al cargar perfiles');
+    return response.json();
+  })
+  .then(data => {
+    select.innerHTML = '<option value="">-- Selecciona un perfil --</option>';
+    const profiles = data.profiles || data;
+    profiles.forEach(profile => {
+      const option = document.createElement('option');
+      option.value = profile.id;
+      option.textContent = profile.titulo;
+      select.appendChild(option);
+    });
+  })
+  .catch(error => {
+    console.error('Error cargando perfiles:', error);
+    select.innerHTML = '<option value="">-- Error al cargar --</option>';
+  });
+}
+
+function iniciarPolling() {
+  if (pollInterval) clearInterval(pollInterval);
+  
+  pollInterval = setInterval(() => {
+    if (!currentUploadId) {
+      clearInterval(pollInterval);
+      return;
+    }
+    
+    fetch(`/api/cvs/upload-status/${currentUploadId}`, {
+      headers: {
+        'Accept': 'application/json'
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      console.log('Upload status:', data);
+      // Actualizar UI según el estado
+      if (data.status === 'completed' || data.status === 'parsed') {
+        clearInterval(pollInterval);
+        // Habilitar botón de analizar
+        document.getElementById('btn-analizar').disabled = false;
+      }
+    })
+    .catch(error => console.error('Error en polling:', error));
+  }, 2000); // Poll cada 2 segundos
+}
+
+function iniciarAnalisis() {
+  const perfilId = document.getElementById('perfil-select').value;
+  
+  if (!perfilId) {
+    alert('Por favor selecciona un perfil de cargo');
+    return;
+  }
+  
+  if (!currentUploadId) {
+    alert('No hay CVs subidos para analizar');
+    return;
+  }
+  
+  // Mostrar barra de progreso del análisis
+  const analysisProgress = document.getElementById('analysis-progress');
+  const progressBar = document.getElementById('analysis-progress-bar');
+  const progressText = document.getElementById('analysis-progress-text');
+  analysisProgress.classList.remove('hidden');
+  document.getElementById('btn-analizar').disabled = true;
+  
+  // Obtener CVs del upload
+  fetch(`/api/cvs/upload-status/${currentUploadId}`, {
+    headers: {
+      'Accept': 'application/json'
+    }
+  })
+  .then(response => response.json())
+  .then(uploadData => {
+    const cvIds = uploadData.files.map(f => f.file_id).filter(id => id > 0);
+    
+    if (cvIds.length === 0) {
+      alert('No hay CVs válidos para analizar');
+      return;
+    }
+    
+    // Enviar request de análisis batch
+    return fetch('/api/cvs/analysis/batch', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({
+        perfil_id: parseInt(perfilId),
+        cv_ids: cvIds
+      })
+    });
+  })
+  .then(response => response.json())
+  .then(data => {
+    console.log('Batch analysis response:', data);
+    
+    // Actualizar barra de progreso
+    progressBar.style.width = data.progress + '%';
+    progressText.textContent = data.progress + '%';
+    
+    // Si el análisis está completo, mostrar resultados
+    if (data.status === 'completed' && data.results) {
+      // Obtener título del perfil
+      const perfilSelect = document.getElementById('perfil-select');
+      const perfilTitulo = perfilSelect.options[perfilSelect.selectedIndex].text;
+      
+      // Mostrar resultados usando la función global
+      if (window.mostrarResultadosAnalisis) {
+        window.mostrarResultadosAnalisis(data.results, perfilTitulo);
+      }
+    } else if (data.status === 'processing') {
+      // Iniciar polling para batch-status
+      iniciarPollingBatchStatus(data.batch_id, perfilId);
+    }
+    
+    document.getElementById('btn-analizar').disabled = false;
+  })
+  .catch(error => {
+    console.error('Error al analizar:', error);
+    showError('Error al analizar CVs: ' + error.message);
+    document.getElementById('btn-analizar').disabled = false;
+  });
+}
+
+function iniciarPollingBatchStatus(batchId, perfilId) {
+  const pollInterval = setInterval(() => {
+    fetch(`/api/cvs/analysis/batch-status/${batchId}`, {
+      headers: {
+        'Accept': 'application/json'
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      console.log('Batch status:', data);
+      
+      // Actualizar barra de progreso
+      const progressBar = document.getElementById('analysis-progress-bar');
+      const progressText = document.getElementById('analysis-progress-text');
+      progressBar.style.width = data.progress + '%';
+      progressText.textContent = data.progress + '%';
+      
+      // Si está completo, mostrar resultados y detener polling
+      if (data.status === 'completed' && data.results) {
+        clearInterval(pollInterval);
+        
+        // Obtener título del perfil
+        const perfilSelect = document.getElementById('perfil-select');
+        const perfilTitulo = perfilSelect.options[perfilSelect.selectedIndex].text;
+        
+        // Mostrar resultados
+        if (window.mostrarResultadosAnalisis) {
+          window.mostrarResultadosAnalisis(data.results, perfilTitulo);
+        }
+      }
+    })
+    .catch(error => {
+      console.error('Error en polling batch:', error);
+      clearInterval(pollInterval);
+    });
+  }, 1000); // Poll cada 1 segundo
+}
+
+function showError(message) {
+  const errorDiv = document.getElementById('upload-error');
+  const errorMessage = document.getElementById('upload-error-message');
+
+  errorDiv.classList.remove('hidden');
+  errorMessage.textContent = message;
+
+  // Ocultar después de 5 segundos
+  setTimeout(() => {
+    errorDiv.classList.add('hidden');
+  }, 5000);
+}
+</script>

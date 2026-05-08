@@ -1,0 +1,52 @@
+<!-- Badge de Puntaje con Color Condicional -->
+
+{% set puntaje_num = puntaje|default(0)|int %}
+
+{% if puntaje_num >= 70 %}
+  {% set color_class = 'bg-success-500' %}
+  {% set color_text = 'text-success-500' %}
+  {% set etiqueta = 'Recomendado' %}
+{% elif puntaje_num >= 40 %}
+  {% set color_class = 'bg-yellow-400' %}
+  {% set color_text = 'text-yellow-600' %}
+  {% set etiqueta = 'Recomendado con reservas' %}
+{% else %}
+  {% set color_class = 'bg-danger-500' %}
+  {% set color_text = 'text-danger-500' %}
+  {% set etiqueta = 'No Recomendado' %}
+{% endif %}
+
+<!-- Badge simple (solo puntaje) -->
+{% if show_bar|default(false) %}
+  <div class="flex items-center gap-3">
+    <!-- Barra de progreso -->
+    <div class="flex-1 bg-gray-200 rounded-full h-4 overflow-hidden">
+      <div 
+        class="h-full {{ color_class }} rounded-full transition-all duration-500 ease-out flex items-center justify-end pr-2"
+        style="width: {{ puntaje_num }}%"
+      >
+        {% if puntaje_num >= 15 %}
+          <span class="text-xs font-bold text-white">{{ puntaje_num }}</span>
+        {% endif %}
+      </div>
+    </div>
+    
+    <!-- Puntaje numérico -->
+    {% if puntaje_num < 15 %}
+      <span class="text-sm font-bold {{ color_text }} w-8">{{ puntaje_num }}</span>
+    {% endif %}
+  </div>
+
+{% else %}
+  <!-- Badge circular -->
+  <div class="inline-flex items-center justify-center w-12 h-12 rounded-full {{ color_class }} text-white font-bold text-sm shadow-md">
+    {{ puntaje_num }}
+  </div>
+{% endif %}
+
+<!-- Tooltip con etiqueta (opcional) -->
+{% if show_label|default(false) %}
+  <div class="mt-1 text-xs {{ color_text }} font-medium">
+    {{ etiqueta }}
+  </div>
+{% endif %}

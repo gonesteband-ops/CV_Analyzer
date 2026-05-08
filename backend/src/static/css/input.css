@@ -1,0 +1,140 @@
+/* backend/src/static/css/input.css */
+@import "tailwindcss";
+
+@theme {
+  --color-primary-500: #2F4DAA;
+  --color-primary-600: #2A469D;
+  --color-success-500: #4CAA37;
+  --color-success-600: #3D8B2C;
+  --color-danger-500: #F95E50;
+  --color-danger-600: #E04A3D;
+  --color-background: #F0F1F3;
+  --color-score-low: #F95E50;
+  --color-score-medium: #FFC107;
+  --color-score-high: #4CAA37;
+  
+  --font-family-sans: "Inter", "Nunito Sans", system-ui, sans-serif;
+  
+  --radius-default: 0.5rem;
+  --radius-lg: 0.5rem;
+}
+
+/* Scrollbars personalizados */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(193, 194, 196, 0.3);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #C1C2C4;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #A1A2A4;
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #C1C2C4 rgba(193, 194, 196, 0.3);
+}
+
+/* Tipografía base */
+body {
+  font-family: "Inter", "Nunito Sans", system-ui, sans-serif;
+  background-color: #F0F1F3;
+}
+
+/* Utilitarios personalizados */
+.form-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid #D1D5DB;
+  transition: all 0.2s;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #2F4DAA;
+  box-shadow: 0 0 0 3px rgba(47, 77, 170, 0.2);
+}
+
+.form-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 0.5rem;
+}
+
+.btn {
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s;
+}
+
+.btn:hover {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.btn:active {
+  transform: scale(0.95);
+}
+
+.btn-primary {
+  background-color: #2F4DAA;
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: #2A469D;
+}
+
+.btn-success {
+  background-color: #4CAA37;
+  color: white;
+}
+
+.btn-success:hover {
+  background-color: #3D8B2C;
+}
+
+.btn-danger {
+  background-color: #F95E50;
+  color: white;
+}
+
+.btn-danger:hover {
+  background-color: #E04A3D;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.badge-success {
+  background-color: #4CAA37;
+  color: white;
+}
+
+.badge-warning {
+  background-color: #FFC107;
+  color: #1F2937;
+}
+
+.badge-danger {
+  background-color: #F95E50;
+  color: white;
+}
