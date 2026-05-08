@@ -66,14 +66,15 @@
         </div>
 
         <!-- Mensaje de error desde URL -->
-        {% if request.query_params.get('error') == 'invalid_credentials' %}
+        {% set error_param = request.query_params.get('error') %}
+        {% if error_param == 'invalid_credentials' %}
         <div class="bg-danger-500 text-white px-4 py-3 rounded-lg">
           <p class="font-semibold">Error de autenticación</p>
           <p class="text-sm">Email o contraseña inválidos</p>
         </div>
         {% endif %}
-        
-        {% if request.query_params.get('error') == 'server_error' %}
+
+        {% if error_param == 'server_error' %}
         <div class="bg-danger-500 text-white px-4 py-3 rounded-lg">
           <p class="font-semibold">Error de servidor</p>
           <p class="text-sm">Intente nuevamente más tarde</p>
