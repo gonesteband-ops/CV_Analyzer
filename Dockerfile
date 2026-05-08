@@ -3,7 +3,7 @@ FROM python:3.11-slim
 WORKDIR /app
 
 # PYTHONPATH necesario para que uvicorn encuentre src.main:app
-ENV PYTHONPATH=/app
+ENV PYTHONPATH=/app/src
 
 # Instalar dependencias del sistema
 RUN apt-get update && apt-get install -y --no-install-recommends \
