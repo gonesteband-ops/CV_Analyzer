@@ -20,6 +20,9 @@ COPY backend/src/ /app/src/
 # Crear directorio de uploads con permisos de escritura
 RUN mkdir -p /app/src/uploads && chmod 777 /app/src/uploads
 
+# Crear archivo de BD vacío si no existe
+RUN touch /app/src/analizer.db && chmod 666 /app/src/analizer.db
+
 # Exponer puerto
 EXPOSE 8000
 
