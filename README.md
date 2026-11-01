@@ -2,7 +2,7 @@
 
 Aplicación web para revisar CVs de forma masiva: sube los archivos, los evalúa con IA contra un perfil de cargo y devuelve un ranking con puntaje, etiqueta y feedback por candidato.
 
-> Demo online: _(pendiente de URL)_ — mientras tanto se puede levantar con Docker en dos comandos.
+> Se levanta con Docker en dos comandos y funciona sin API key (análisis local). Ver [Arranque rápido](#arranque-rápido-con-docker).
 
 ## Qué hace
 
