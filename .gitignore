@@ -70,3 +70,20 @@ temp/
 *.pem
 *.key
 secret_key.txt
+analizer.txt
+cookies.txt
+
+# Datos personales / CVs reales
+/curriculums/
+/analisis/
+*.7z
+
+# Configuracion local de agentes
+.qwen/settings.json
+.qwen/settings.json.orig
+.claude/settings.local.json
+
+# Bases de datos locales en subcarpetas
+backend/scripts/*.db
+backend/src/*.db
+backend/*.db
