@@ -1,197 +1,51 @@
 # Despliegue en Render
 
-## Archivos Docker incluidos
+El proyecto ya incluye `Dockerfile`, por lo que Render puede construirlo directamente.
 
-- `Dockerfile` - Configuración de la imagen Python 3.11
-- `docker-compose.yml` - Orquestación local (para testing)
-- `.dockerignore` - Excluye archivos de desarrollo del build
-- `backend/requirements.txt` - Dependencias congeladas
+## 1. Crear el servicio
 
-## Pasos para desplegar en Render
+1. En https://dashboard.render.com → **New +** → **Web Service**.
+2. Conectar el repositorio `CV_Analyzer`.
+3. Configurar:
+   - **Runtime**: `Docker`
+   - **Branch**: `main`
+   - **Root Directory**: vacío
+   - **Plan**: Free o Standard
 
-### 1. Conectar repositorio a Render
+## 2. Variables de entorno
 
-1. Ir a https://dashboard.render.com
-2. Click en **"New +"** → **"Web Service"**
-3. Conectar repositorio de GitHub
-4. Seleccionar el repositorio `analizer_beta_2`
+| Variable | Valor |
+|---|---|
+| `SECRET_KEY` | Clave aleatoria larga (`openssl rand -hex 32`) |
+| `CREDENTIAL_ENCRYPTION_KEY` | Otra clave aleatoria larga |
+| `DEBUG` | `False` |
+| `SESSION_COOKIE_SECURE` | `True` |
+| `ADMIN_EMAIL` | Email del administrador |
+| `ADMIN_PASSWORD` | Password del administrador |
+| `GROQ_API_KEY` | Opcional (sin ella se usa el analizador local) |
+| `DB_PATH` | `/app/data/analizer.db` |
 
-### 2. Configurar el Web Service
+El administrador se crea automáticamente en el primer arranque si defines `ADMIN_EMAIL` y `ADMIN_PASSWORD`. No necesitas Shell.
 
-**Configuración básica:**
-- **Name**: `ai-recruiter-pro`
-- **Region**: `Oregon (USA)` o la más cercana a Chile
-- **Branch**: `main` (o tu rama principal)
-- **Root Directory**: (dejar vacío)
-- **Runtime**: `Python 3`
-- **Build Command**: `pip install -r backend/requirements.txt`
-- **Start Command**: `cd backend/src && uvicorn src.main:app --host 0.0.0.0 --port 8000`
+## 3. Persistencia
 
-**Variables de entorno:**
-```bash
-SECRET_KEY=tu-secret-key-generada-aqui
-DEBUG=False
-DATABASE_URL=sqlite:///./analizer.db
-TIMEZONE=America/Santiago
-SESSION_COOKIE_NAME=session_id
-SESSION_COOKIE_SECURE=True
-SESSION_COOKIE_HTTPONLY=True
-SESSION_COOKIE_SAMESITE=lax
-```
+Render no conserva el filesystem entre deploys. Para no perder la base SQLite ni los uploads, agrega un **Persistent Disk**:
 
-**Plan:**
-- **Free** (para testing) o **Standard** ($7/mes para producción)
+- Mount Path: `/app/data`
+- Size: 1 GB (suficiente para una demo)
 
-### 3. Crear usuario administrador (POST-DEPLOY)
+El `Dockerfile` ya expone el puerto con `${PORT:-8000}`, que es lo que Render espera.
 
-Después del primer deploy, la base de datos estará vacía. Sigue estos pasos:
-
-#### Opción A: Usando la Shell de Render (RECOMENDADO)
-
-1. Ir al dashboard del Web Service en Render
-2. Click en el botón **"Shell"** (arriba a la derecha)
-3. En la terminal que se abre, ejecutar:
+## 4. Verificar
 
 ```bash
-cd backend/src && python init_db_admin.py
+curl https://TU-SERVICIO.onrender.com/health
 ```
 
-4. Verás la salida:
-```
-[*] Iniciando creacion de usuario administrador...
-    Database: sqlite:///./analizer.db
-[*] Inicializando base de datos...
-[+] Base de datos inicializada correctamente
-[+] Usuario administrador creado exitosamente!
-    ID: 1
-    Email: admin@test.com
-    Nombre: Admin
-    Rol: admin
+Debe responder `{"status":"healthy","version":"0.1.0"}`. Luego entra a `/login` con las credenciales configuradas.
 
-[CREDENCIALES]
-    Email: admin@test.com
-    Password: admin123
+## Notas
 
-[!] IMPORTANTE! Cambia la contraseña despues del primer login
-```
-
-5. Ir a `https://ai-recruiter-pro.onrender.com/login`
-6. Iniciar sesión con: `admin@test.com` / `admin123`
-
-#### Opción B: Script manual desde Shell
-
-Si prefieres no usar el script, ejecuta directamente en la Shell:
-
-```bash
-cd backend/src && python -c "
-from core.database import SessionLocal
-from models.usuario import Usuario
-from datetime import datetime
-from core.security import hash_password
-
-db = SessionLocal()
-admin = Usuario(
-    email='admin@test.com',
-    nombre='Administrador',
-    password_hash=hash_password('admin123'),
-    rol='admin',
-    created_at=datetime.utcnow()
-)
-db.add(admin)
-db.commit()
-db.close()
-print('Admin creado: admin@test.com / admin123')
-"
-```
-
-### 4. Verificar despliegue
-
-**Health check:**
-```bash
-curl https://ai-recruiter-pro.onrender.com/health
-```
-
-**Login:**
-```bash
-curl https://ai-recruiter-pro.onrender.com/login
-```
-
-**Ver logs:**
-- Ir al dashboard del Web Service
-- Click en **"Logs"**
-- Ver logs en tiempo real
-
-## Comandos útiles en Render Shell
-
-```bash
-# Ver logs en tiempo real
-tail -f /opt/render/project/src/backend/src/logs/app.log
-
-# Reiniciar la aplicación
-render-cli restart
-
-# Ver variables de entorno
-env | grep -E 'SECRET|DATABASE|SESSION'
-
-# Explorar la base de datos
-cd backend/src && python -c "from core.database import SessionLocal; db = SessionLocal(); print(db.query(models.Usuario).all())"
-
-# Ver uploads
-ls -la /opt/render/project/src/backend/src/uploads/
-```
-
-## Consideraciones de producción
-
-### Seguridad
-- ✅ `DEBUG=False` en producción
-- ✅ `SESSION_COOKIE_SECURE=True` (requiere HTTPS)
-- ✅ `SECRET_KEY` única y segura (generar con `openssl rand -hex 32`)
-- ✅ Cambiar contraseña de admin después del primer login
-
-### Base de datos
-- SQLite es suficiente para testing y bajo tráfico
-- Para producción con alto tráfico, migrar a PostgreSQL:
-  - Add PostgreSQL en Render dashboard
-  - Actualizar `DATABASE_URL` en variables de entorno
-  - Re-deploy automático
-
-### Uploads
-- Los CVs se guardan en `/opt/render/project/src/backend/src/uploads/`
-- Se persisten automáticamente (Render mantiene el filesystem)
-- Límite: 10GB en plan Free, 50GB en Standard
-
-### Cold starts (plan Free)
-- El plan Free tiene cold start de ~30 segundos
-- Primer request después de 15 min de inactividad será lento
-- Considerar plan Standard para producción
-
-## Solución de problemas
-
-### Error: "ModuleNotFoundError: No module named 'src.main'"
-- Verificar que el Start Command sea: `cd backend/src && uvicorn src.main:app --host 0.0.0.0 --port 8000`
-
-### Error: "DATABASE_URL no configurada"
-- Verificar variables de entorno en Render dashboard
-- Asegurar que `DATABASE_URL=sqlite:///./analizer.db`
-
-### Error: "No hay usuarios creados"
-- Ejecutar `init_db_admin.py` desde la Shell
-- Verificar que el script se incluyó en el build (revisar `.dockerignore`)
-
-### Error: "Cannot write to uploads"
-- Verificar permisos en Dockerfile: `RUN mkdir -p /app/src/uploads && chmod 777 /app/src/uploads`
-
-## Próximos pasos
-
-1. ✅ Desplegar en Render
-2. ✅ Crear usuario admin
-3. ✅ Cambiar contraseña de admin
-4. ✅ Configurar dominio personalizado (opcional)
-5. ✅ Habilitar HTTPS automático (Render lo hace por defecto)
-6. ✅ Configurar backups de la base de datos (manual en SQLite)
-7. ✅ Monitorear logs y métricas
-
----
-
-**Documentación actualizada:** Mayo 2026
-**Versión:** AI-Recruiter Pro 0.1.0
+- El plan Free duerme tras 15 minutos de inactividad; el primer request puede tardar ~30 segundos.
+- Para alto tráfico, migra a PostgreSQL cambiando `DATABASE_URL`.
+- Cambia la contraseña del administrador después del primer login.

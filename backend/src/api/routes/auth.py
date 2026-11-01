@@ -69,19 +69,12 @@ async def login(
     # Normalizar email
     email = str(email).strip().lower()
 
-    logger.info(f"Intento de login con email: {email}, password: {password}")
+    logger.debug(f"Intento de login con email: {email}")
 
     # Buscar usuario por email
     usuario = db.query(Usuario).filter(Usuario.email == email).first()
 
-    logger.info(f"Usuario encontrado: {usuario is not None}")
-
     # Verificar credenciales
-    if usuario:
-        logger.info(f"Hash almacenado: {usuario.password_hash}")
-        es_valida = verificar_password(str(password), usuario.password_hash)
-        logger.info(f"Contrasena valida: {es_valida}")
-
     if not usuario or not verificar_password(str(password), usuario.password_hash):
         logger.warning(f"Intento de login fallido para email: {email}")
         # Redirigir a login con parámetro de error

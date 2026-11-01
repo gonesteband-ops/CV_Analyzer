@@ -19,11 +19,16 @@ class Settings(BaseSettings):
     )
     
     # Aplicación
-    app_name: str = Field(default="AI-Recruiter Pro", description="Nombre de la aplicación")
+    app_name: str = Field(default="CV Analyzer", description="Nombre de la aplicación")
     version: str = Field(default="0.1.0", description="Versión de la aplicación")
     debug: bool = Field(default=False, description="Modo debug")
     secret_key: str = Field(..., description="Clave secreta para sesiones y tokens")
     timezone: str = Field(default="America/Santiago", description="Zona horaria")
+    
+    # Administrador inicial (opcional, solo se crea si ambos valores existen)
+    admin_email: str = Field(default="", description="Email del administrador inicial")
+    admin_password: str = Field(default="", description="Password del administrador inicial")
+    admin_name: str = Field(default="Admin", description="Nombre del administrador inicial")
     
     # Base de datos
     database_url: str = Field(

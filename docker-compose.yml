@@ -1,19 +1,18 @@
-version: '3.8'
-
 services:
   app:
     build: .
-    container_name: ai-recruiter-pro
+    container_name: cv-analyzer
     ports:
       - "8001:8000"
     env_file:
       - .env
+    environment:
+      - DB_PATH=/app/data/analizer.db
     volumes:
-      # Persistencia de uploads con permisos
       - uploads_data:/app/src/uploads
-      # Persistencia de base de datos SQLite
-      - ./backend/src/analizer.db:/app/src/analizer.db
+      - db_data:/app/data
     restart: unless-stopped
 
 volumes:
   uploads_data:
+  db_data:

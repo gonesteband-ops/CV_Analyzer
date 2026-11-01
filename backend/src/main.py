@@ -9,11 +9,11 @@ from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
 from sqlalchemy.orm import Session
-from passlib.context import CryptContext
 
 # Imports de tu app
 from core.config import settings
 from core.database import SessionLocal, engine, get_db, init_db
+from core.security import hash_password
 from api.deps import require_auth
 from models.usuario import Usuario
 import models.usuario as models_module
@@ -22,7 +22,6 @@ from models.analisis import Analisis
 
 # 1. CONFIGURACIÓN INICIAL
 logger = logging.getLogger(__name__)
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 BASE_DIR = Path(__file__).parent
 
 # 2. CREAR APLICACIÓN (Única instancia)
@@ -38,31 +37,32 @@ async def startup_event():
     # Inicializa tablas
     models_module.Base.metadata.create_all(bind=engine)
 
-    db = SessionLocal()
-    try:
-        admin_email = "gonzalo@iarecruiter.cl"
-        user = db.query(Usuario).filter(Usuario.email == admin_email).first()
-
-        if not user:
-            nuevo = Usuario(
-                nombre="Gonzalo",
-                email=admin_email,
-                password_hash=pwd_context.hash("Admin.123"),
-                rol="admin",
-                created_at=datetime.now()
+    # Crea el administrador inicial solo si se configuró por variables de entorno
+    if settings.admin_email and settings.admin_password:
+        db = SessionLocal()
+        try:
+            existente = (
+                db.query(Usuario)
+                .filter(Usuario.email == settings.admin_email)
+                .first()
             )
-            db.add(nuevo)
-            db.commit()
-            print(f" USUARIO CREADO: {admin_email}")
-        else:
-            user.password_hash = pwd_context.hash("Admin.123")
-            db.commit()
-            print(f" CREDENCIALES ACTUALIZADAS: {admin_email}")
-
-    except Exception as e:
-        print(f" ERROR EN STARTUP: {e}")
-    finally:
-        db.close()
+            if not existente:
+                db.add(
+                    Usuario(
+                        nombre=settings.admin_name,
+                        email=settings.admin_email,
+                        password_hash=hash_password(settings.admin_password),
+                        rol="admin",
+                        created_at=datetime.now(),
+                    )
+                )
+                db.commit()
+                logger.info("Usuario administrador inicial creado")
+        except Exception as e:
+            logger.error(f"Error al crear administrador inicial: {e}")
+            db.rollback()
+        finally:
+            db.close()
 
     logger.info(f"{settings.app_name} v{settings.version} iniciada")
 
@@ -206,10 +206,9 @@ async def health():
 if __name__ == "__main__":
     import uvicorn
     print("=" * 60)
-    print(" AI-Recruiter Pro - Servidor de Desarrollo")
+    print(f" {settings.app_name} - Servidor de Desarrollo")
     print("=" * 60)
     print(" URL: http://localhost:8000")
     print(" Login: http://localhost:8000/login")
-    print(" Admin: gonzalo@iarecruiter.cl / Admin.123")
     print("=" * 60)
     uvicorn.run(app, host="0.0.0.0", port=8000)

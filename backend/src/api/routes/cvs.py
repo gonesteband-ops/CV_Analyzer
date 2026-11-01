@@ -156,9 +156,11 @@ async def _validar_archivo(file: UploadFile, max_size: int, allowed_extensions: 
     if file_ext not in allowed_extensions:
         return False, f"Tipo de archivo no soportado: {file_ext}. Solo {', '.join(allowed_extensions)}"
 
-    await file.seek(0, 2)
-    size = file.tell()
-    await file.seek(0)
+    size = getattr(file, "size", None)
+    if size is None:
+        contenido = await file.read()
+        size = len(contenido)
+        await file.seek(0)
 
     if size > max_size:
         return False, f"Archivo demasiado grande ({size / 1024 / 1024:.2f}MB). Maximo {max_size / 1024 / 1024:.0f}MB"

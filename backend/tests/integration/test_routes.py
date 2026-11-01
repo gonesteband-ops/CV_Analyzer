@@ -41,6 +41,11 @@ def override_get_db():
 # Reemplazar dependencia antes de crear el client
 app.dependency_overrides[get_db] = override_get_db
 
+# Las rutas usan api.deps.get_db (función distinta), por lo que también se overridea
+from api.deps import get_db as api_get_db
+
+app.dependency_overrides[api_get_db] = override_get_db
+
 
 @pytest.fixture(scope="function")
 def db_session():
@@ -58,6 +63,8 @@ def db_session():
 @pytest.fixture(scope="function")
 def client(db_session):
     """Crea TestClient con base de datos de test."""
+    app.dependency_overrides[get_db] = override_get_db
+    app.dependency_overrides[api_get_db] = override_get_db
     with TestClient(app=app, follow_redirects=False) as c:
         yield c
 
@@ -153,7 +160,7 @@ class TestAuthRoutes:
 
 
 # Importar SessionModel después de definir engine
-from models.session import SessionModel
+from models.session import Session as SessionModel
 
 
 class TestProfilesRoutes:

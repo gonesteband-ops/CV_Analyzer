@@ -1,329 +1,151 @@
-# AI-Recruiter Pro
+# CV Analyzer
 
-Sistema inteligente de análisis de CVs con IA para reclutamiento de personal.
+Aplicación web para revisar CVs de forma masiva: sube los archivos, los evalúa con IA contra un perfil de cargo y devuelve un ranking con puntaje, etiqueta y feedback por candidato.
 
-## 🚀 Características Principales
+> Demo online: _(pendiente de URL)_ — mientras tanto se puede levantar con Docker en dos comandos.
 
-- **Análisis Masivo de CVs**: Carga y analiza múltiples CVs simultáneamente (PDF, DOCX, TXT)
-- **Matching Inteligente**: Compara CVs contra perfiles de cargo usando IA (GROQ/Deepseek)
-- **Layered Scoring**: Evaluación dimensional (técnico, experiencia, soft skills) con penalizaciones
-- **Histórico de Análisis**: Filtrado, exportación a Excel y seguimiento de candidatos
-- **Gestión de Usuarios**: Roles (Admin/Reclutador), sesiones y recuperación de contraseña
-- **Exportación XLSX**: Reportes con formato corporativo y colores condicionales
+## Qué hace
 
-## 📋 Requisitos
+- **Autenticación con sesiones** (cookie HttpOnly) y roles (`admin` / `analista`).
+- **Perfiles de cargo**: skills requeridas y deseables, seniority, rango salarial y pesos de evaluación configurables.
+- **Carga masiva de CVs** en PDF, DOCX y TXT (hasta 10 MB por archivo, 50 por lote).
+- **Extracción de datos** del CV: contacto, experiencia, educación, habilidades e idiomas.
+- **Análisis con IA**: Groq como proveedor principal y un analizador local heurístico como fallback si no hay API key.
+- **Ranking y etiquetas**: `Recomendado`, `Reservas`, `No Recomendado`, con justificación.
+- **Histórico filtrable** por perfil, fecha, puntaje y etiqueta, con exportación a Excel.
+- **Tests** unitarios, de integración y de contrato en `backend/tests`.
 
-- **Python**: 3.11 o superior
-- **Node.js**: Para compilar Tailwind CSS (opcional, solo desarrollo)
-- **Base de Datos**: SQLite (producción: PostgreSQL/MySQL)
+## Stack
 
-## 🛠️ Instalación
+| Capa | Tecnología |
+|---|---|
+| Backend | Python 3.11, FastAPI, SQLAlchemy 2 |
+| Base de datos | SQLite (dev) / PostgreSQL (producción) |
+| Frontend | Jinja2 + HTMX + Tailwind CSS |
+| IA | Groq (opcional), DeepSeek (opcional), fallback local |
+| Deploy | Docker / Render |
 
-### 1. Clonar repositorio
-
-```bash
-cd C:\Users\hp\Desktop\PROYECTOS\analizer_beta_2
-```
-
-### 2. Instalar dependencias de Python
-
-```bash
-pip install -e ".[dev]"
-```
-
-### 3. Instalar Tailwind CSS (opcional, solo si modificas estilos)
+## Arranque rápido con Docker
 
 ```bash
-npm install -g tailwindcss@latest
+git clone https://github.com/gonesteband-ops/CV_Analyzer.git
+cd CV_Analyzer
+cp .env.example .env          # PowerShell: Copy-Item .env.example .env
 ```
 
-## ⚙️ Configuración
-
-### 1. Copiar archivo de entorno
-
-```bash
-# Windows PowerShell
-Copy-Item .env.example .env
-
-# Linux/Mac
-cp .env.example .env
-```
-
-### 2. Editar `.env` con tus credenciales
+Edita `.env` y completa al menos:
 
 ```ini
-# Clave secreta para sesiones y tokens (generar con: openssl rand -hex 32)
-SECRET_KEY=tu_clave_secreta_muy_larga_y_segura_aqui
-
-# API Key de GROQ para análisis con IA (obtener en https://console.groq.com)
-GROQ_API_KEY=gsk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-
-# URL de base de datos (SQLite para desarrollo)
-DATABASE_URL=sqlite:///./analizer.db
-
-# Clave para encriptar credenciales de portales (opcional)
-CREDENTIAL_ENCRYPTION_KEY=tu_clave_de_encriptacion_aqui
-
-# Versión de la aplicación
-VERSION=0.1.0
+SECRET_KEY=una-clave-larga-y-aleatoria
+CREDENTIAL_ENCRYPTION_KEY=<clave Fernet, ver abajo>
+ADMIN_EMAIL=admin@example.com
+ADMIN_PASSWORD=UnaClaveSegura123
 ```
 
-### 3. Generar clave secreta (recomendado)
+`CREDENTIAL_ENCRYPTION_KEY` debe ser una clave Fernet válida. Genérala con:
 
 ```bash
-# Python
-python -c "import secrets; print(secrets.token_hex(32))"
-
-# Linux/Mac
-openssl rand -hex 32
+python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
 ```
 
-## 🗄️ Migraciones
-
-Inicializar la base de datos y crear tablas:
+Luego:
 
 ```bash
-cd backend/src
-python scripts/migrate.py upgrade
+docker compose up --build
 ```
 
-### Crear usuario administrador
+Abre `http://localhost:8001/login` e ingresa con el `ADMIN_EMAIL` / `ADMIN_PASSWORD` que definiste. El usuario se crea automáticamente al iniciar.
+
+## Arranque local (sin Docker)
+
+Requiere Python 3.11+.
 
 ```bash
-cd backend/src
-python scripts/create_admin.py
-```
+python -m venv .venv
+# Windows
+.venv\Scripts\activate
+# Linux / macOS
+source .venv/bin/activate
 
-**Credenciales por defecto**:
-- Email: `admin@test.com`
-- Password: `admin123`
+pip install -r requirements.txt
+cp .env.example .env          # completar SECRET_KEY y CREDENTIAL_ENCRYPTION_KEY
 
-**⚠️ Importante**: Cambiar la contraseña después del primer login.
-
-## ▶️ Ejecución
-
-### Iniciar servidor de desarrollo
-
-```bash
 cd backend/src
 python -m uvicorn main:app --reload --port 8000
 ```
 
-### Opciones adicionales
+Verificar: `curl http://localhost:8000/health` → `{"status":"healthy","version":"0.1.0"}`.
 
-```bash
-# Producción (sin auto-reload)
-python -m uvicorn main:app --host 0.0.0.0 --port 8000 --workers 4
+### Variables de entorno
 
-# Puerto personalizado
-python -m uvicorn main:app --reload --port 8001
+| Variable | Obligatoria | Uso |
+|---|---|---|
+| `SECRET_KEY` | Sí | Firma de sesiones |
+| `CREDENTIAL_ENCRYPTION_KEY` | Sí | Cifrado de credenciales de portales |
+| `ADMIN_EMAIL` / `ADMIN_PASSWORD` | No | Crea el admin inicial si no existe |
+| `GROQ_API_KEY` | No | Análisis con IA; sin ella se usa el analizador local |
+| `DEEPSEEK_API_KEY` | No | Proveedor alternativo de IA |
+| `DATABASE_URL` | No | Por defecto SQLite |
+| `DB_PATH` | No | Fuerza la ruta del archivo SQLite (Docker usa `/app/data/analizer.db`) |
 
-# Con logging detallado
-PYTHONPATH=backend/src uvicorn main:app --reload --log-level debug
-```
+## Uso
 
-### Verificar que está corriendo
+1. Inicia sesión en `/login`.
+2. Crea un perfil de cargo en `/perfiles`.
+3. Sube uno o más CVs desde el inicio.
+4. Selecciona los CVs y el perfil, y ejecuta el análisis.
+5. Revisa resultados y ranking en `/historico`; exporta a Excel si lo necesitas.
 
-Abrir navegador en: http://localhost:8000
+## Endpoints principales
 
-O verificar health check:
+| Método | Ruta | Descripción |
+|---|---|---|
+| GET | `/health` | Health check |
+| GET | `/docs` | Documentación OpenAPI |
+| POST | `/api/auth/login` | Inicio de sesión |
+| POST | `/api/cvs/upload` | Carga de CVs |
+| POST | `/api/cvs/analysis/batch` | Análisis por lote |
+| GET | `/api/cvs/list` | Listado de CVs |
+| GET/POST | `/api/profiles` | Perfiles de cargo |
+| GET | `/api/history` | Histórico de análisis |
+| GET | `/api/history/export` | Exportación a Excel |
 
-```bash
-curl http://localhost:8000/health
-# Respuesta: {"status":"healthy","version":"0.1.0"}
-```
-
-## 📖 Uso Básico
-
-### 1. Login
-
-1. Navegar a http://localhost:8000/login
-2. Ingresar credenciales (email y password)
-3. Click en "Iniciar Sesión"
-
-### 2. Crear Perfil de Cargo
-
-1. Ir a "Perfiles" en el sidebar
-2. Click en "Nuevo Perfil"
-3. Completar formulario:
-   - Título del cargo
-   - Descripción
-   - Habilidades requeridas (separadas por comas)
-   - Habilidades deseables
-   - Nivel de experiencia (junior/mid/senior)
-   - Rango salarial
-   - Departamento
-4. Click en "Guardar"
-
-### 3. Cargar CVs
-
-1. Ir a "Inicio" en el sidebar
-2. Arrastrar archivos PDF/DOCX/TXT a la zona de upload
-3. O hacer click para seleccionar archivos
-4. Esperar a que se procesen (barra de progreso)
-
-### 4. Analizar CVs
-
-1. En "Inicio", seleccionar CVs de la lista (checkboxes)
-2. Seleccionar perfil de cargo del dropdown
-3. Click en "Analizar CVs"
-4. Esperar análisis (puede tardar 30-60 segundos por CV)
-5. Ver resultados con puntaje, etiqueta y feedback
-
-### 5. Ver Histórico
-
-1. Ir a "Histórico" en el sidebar
-2. Filtrar por:
-   - Perfil de cargo
-   - Fecha desde/hasta
-   - Puntaje mínimo/máximo
-   - Etiqueta (Recomendado/Reservas/No Recomendado)
-   - Búsqueda por nombre
-3. Exportar a Excel si es necesario
-
-## 🧪 Testing
-
-### Ejecutar tests unitarios
+## Tests
 
 ```bash
 cd backend
-python -m pytest tests/unit/ -v
+python -m pytest tests -q
 ```
 
-### Ejecutar tests de integración
-
-```bash
-python -m pytest tests/integration/ -v
-```
-
-### Ejecutar todos los tests
-
-```bash
-python -m pytest tests/ -v --tb=short
-```
-
-### Cobertura de tests
-
-```bash
-python -m pytest tests/ --cov=src --cov-report=html
-# Abrir: htmlcov/index.html
-```
-
-## 📁 Estructura del Proyecto
+## Estructura
 
 ```
-analizer_beta_2/
+CV_Analyzer/
 ├── backend/
 │   ├── src/
-│   │   ├── api/
-│   │   │   ├── routes/       # Endpoints de API
-│   │   │   ├── middleware/   # Auth middleware
-│   │   │   └── deps.py       # Dependencias (get_db, require_auth)
-│   │   ├── core/
-│   │   │   ├── config.py     # Configuración y settings
-│   │   │   ├── database.py   # Conexión DB
-│   │   │   └── security.py   # Hash passwords, encriptación
-│   │   ├── models/           # Modelos SQLAlchemy
-│   │   ├── services/         # Lógica de negocio
-│   │   │   └── ia_analyzer/  # Adapters de IA (GROQ, Deepseek, Local)
-│   │   ├── templates/        # Templates Jinja2/HTMX
-│   │   ├── static/           # CSS, JS, imágenes
-│   │   └── main.py           # Aplicación FastAPI
-│   ├── tests/
-│   │   ├── unit/             # Tests unitarios
-│   │   ├── integration/      # Tests de integración
-│   │   └── contract/         # Tests de contrato de API
-│   ├── scripts/
-│   │   ├── migrate.py        # Migraciones de DB
-│   │   └── create_admin.py   # Crear admin
-│   └── uploads/              # CVs subidos
-├── specs/
-│   └── 001-ai-recruiter-pro/
-│       ├── tasks.md          # Tareas del proyecto
-│       └── spec.md           # Especificación técnica
-├── .env                      # Variables de entorno (NO COMMIT)
-├── .env.example              # Ejemplo de .env
-├── pyproject.toml            # Dependencias y configuración
-└── README.md                 # Este archivo
+│   │   ├── api/            # Rutas, middleware y dependencias
+│   │   ├── core/           # Configuración, DB y seguridad
+│   │   ├── models/         # Modelos SQLAlchemy
+│   │   ├── services/       # Extracción de CVs, matching y adapters de IA
+│   │   ├── templates/      # Vistas Jinja2/HTMX
+│   │   ├── static/         # CSS, JS e imágenes
+│   │   ├── main.py         # Aplicación FastAPI
+│   │   └── init_db_admin.py
+│   ├── tests/              # unit / integration / contract
+│   └── scripts/            # Scripts de carga y mantenimiento
+├── scripts/                # create_admin.py, migrate.py
+├── specs/                  # Especificaciones del proyecto
+├── Dockerfile
+├── docker-compose.yml
+└── requirements.txt
 ```
 
-## 🔧 Troubleshooting
+## Notas de seguridad
 
-### Error: "GROQ_API_KEY no configurada"
+- Las claves se leen solo desde `.env` o variables de entorno; no hay credenciales en el código.
+- `.env`, bases SQLite, CVs reales y cookies están excluidos por `.gitignore`.
+- En producción usa `DEBUG=False`, `SESSION_COOKIE_SECURE=True` y HTTPS.
 
-**Solución**: Verificar que `.env` tenga la variable:
+## Licencia
 
-```ini
-GROQ_API_KEY=gsk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-```
-
-Reiniciar el servidor después de agregar.
-
-### Error: "UNIQUE constraint failed: analisis.cv_id"
-
-**Solución**: La tabla fue creada antes del fix. Recrear:
-
-```bash
-cd backend/src
-python -c "from core.database import engine; from sqlalchemy import text; engine.execute(text('DROP TABLE IF EXISTS analisis'))"
-python scripts/migrate.py upgrade
-```
-
-### Error: "ModuleNotFoundError: No module named 'src'"
-
-**Causa**: Estás ejecutando desde el directorio incorrecto.
-
-**Solución**:
-
-```bash
-cd backend/src
-python -m uvicorn main:app --reload
-```
-
-### Los CVs no se analizan (se queda "Analizando...")
-
-**Posibles causas**:
-
-1. **Sin sesión activa**: Iniciar sesión primero
-2. **GROQ_API_KEY inválida**: Verificar en https://console.groq.com
-3. **CV sin texto extraído**: Reintentar upload del CV
-
-**Debug**: Revisar logs del servidor en consola.
-
-### Error: "No autenticado" al llamar API
-
-**Solución**: Los endpoints de API requieren autenticación.
-
-- Para HTMX: El middleware maneja la sesión automáticamente
-- Para fetch API: Incluir cookie `session_id` en los headers
-
-## 📊 Estado del Proyecto
-
-| Métrica | Valor |
-|---------|-------|
-| **Progreso Total** | 91% (106/117 tareas) |
-| **MVP** | ✅ Completo |
-| **Tests** | ✅ 51 tests unitarios passing |
-| **Documentación** | ✅ README.md |
-| **Producción** | 🔄 En progreso |
-
-### Tareas Pendientes
-
-- [ ] Rate limiting (60 req/min por usuario)
-- [ ] CORS para producción
-- [ ] Pruebas de carga (50 CVs en <5 min)
-- [ ] Pruebas de concurrencia (10 usuarios simultáneos)
-- [ ] Seed data para testing
-
-## 📝 Licencia
-
-Este proyecto es propiedad privada. Todos los derechos reservados.
-
-## 📞 Soporte
-
-Para reportar bugs o solicitar soporte, contactar al equipo de desarrollo.
-
----
-
-**Última actualización**: Mayo 2026  
-**Versión**: 0.1.0
+Código compartido con fines de portafolio y evaluación técnica.

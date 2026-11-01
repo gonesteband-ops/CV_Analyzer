@@ -30,12 +30,19 @@ def override_get_db():
 
 app.dependency_overrides[get_db] = override_get_db
 
+# Las rutas usan api.deps.get_db (función distinta), por lo que también se overridea
+from api.deps import get_db as api_get_db
+
+app.dependency_overrides[api_get_db] = override_get_db
+
 
 @pytest.fixture(scope="function")
 def client():
     """Crea TestClient para tests de contrato."""
     Base.metadata.create_all(bind=engine)
-    with TestClient(app=app) as c:
+    app.dependency_overrides[get_db] = override_get_db
+    app.dependency_overrides[api_get_db] = override_get_db
+    with TestClient(app=app, follow_redirects=False) as c:
         yield c
     Base.metadata.drop_all(bind=engine)
 
@@ -58,15 +65,17 @@ class TestContratoRespuestas:
         assert data["status"] == "healthy"
 
     def test_error_404_response_schema(self, client):
-        """Endpoints inexistentes deben retornar 404 con detail."""
+        """Rutas desconocidas sin sesión se redirigen al login (middleware)."""
         response = client.get("/endpoint-no-existe")
-        
-        assert response.status_code == 404
-        data = response.json()
-        
-        # FastAPI retorna {"detail": "Not Found"}
-        assert "detail" in data
-        assert isinstance(data["detail"], str)
+
+        assert response.status_code in [307, 404]
+
+        if response.status_code == 404:
+            data = response.json()
+            assert "detail" in data
+            assert isinstance(data["detail"], str)
+        else:
+            assert "/login" in response.headers.get("location", "")
 
     def test_login_response_redirect(self, client):
         """POST /api/auth/login debe retornar RedirectResponse (303)."""

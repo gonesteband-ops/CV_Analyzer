@@ -18,7 +18,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY backend/src/ /app/src/
 
 # Crear directorio de uploads con permisos de escritura
-RUN mkdir -p /app/src/uploads && chmod 777 /app/src/uploads
+RUN mkdir -p /app/src/uploads /app/data && chmod 777 /app/src/uploads /app/data
 
 # Crear archivo de BD vacío si no existe
 RUN touch /app/src/analizer.db && chmod 666 /app/src/analizer.db
@@ -26,5 +26,5 @@ RUN touch /app/src/analizer.db && chmod 666 /app/src/analizer.db
 # Exponer puerto
 EXPOSE 8000
 
-# Comando de inicio
-CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Comando de inicio (respeta $PORT en plataformas como Render)
+CMD ["sh", "-c", "uvicorn src.main:app --host 0.0.0.0 --port ${PORT:-8000}"]

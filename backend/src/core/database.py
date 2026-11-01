@@ -1,6 +1,7 @@
 """
 Configuración de base de datos SQLAlchemy.
 """
+import os
 from pathlib import Path
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
@@ -9,9 +10,10 @@ from sqlalchemy.pool import StaticPool
 
 from core.config import settings
 
-# Ruta absoluta para la base de datos SQLite (funciona en local y Render)
-# backend/src/analizer.db
-DB_PATH = Path(__file__).parent.parent / "analizer.db"
+# Ruta de la base de datos SQLite.
+# Por defecto backend/src/analizer.db; se puede sobreescribir con DB_PATH
+# (útil en Docker o despliegues con volumen persistente).
+DB_PATH = Path(os.getenv("DB_PATH") or Path(__file__).parent.parent / "analizer.db")
 
 
 def create_database_engine() -> create_engine:
